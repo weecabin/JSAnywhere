@@ -1,0 +1,66 @@
+body {
+  background: #fafafa;
+}
+
+#canvasdiv
+{
+  float:left;
+  width:400px;
+  height:400px;
+  border:2px solid;
+  background-color: red;
+  padding:10px;
+}
+
+#canvas
+{
+  background-color: yellow;
+}
+
+.divider {
+  height: 2px;
+  clear: both;
+  /* background-color: #D5CF8E;  */
+} 
+
+#fp
+{
+  width:400px;
+  height:200px;
+}
+
+#status
+{
+  width:600px;
+  height:200px;
+}
+
+.floatleft
+{
+  float:left;
+}
+
+#edit
+{
+  padding-left:20px;
+}
+
+#routelatlon
+{
+  padding-left:20px;
+  width:600px;
+  height:200px;
+}
+
+#routetable
+{
+  overflow-y:auto;
+  max-height: 150px;
+  min-width: 400px;
+  border-style: ridge;
+}
+
+td
+{
+  padding-left:10px;
+}

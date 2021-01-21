@@ -1,0 +1,42 @@
+<html>
+<head>
+<link rel='stylesheet' href='style.css' />
+<script src="script.js"></script>
+</head>
+
+<body onload="setup()">
+
+<div class="menu">
+<h1 id="title">
+Draw Play 127
+</h1>
+</div>
+
+<div id="canvasdiv" width="400px" height="400px">
+<canvas id="canvas" width="400px" height="400px">
+Your browser does not support the HTML canvas tag.</canvas>
+</div>
+
+<div class="floatleft">
+<input id="newline" type="text" size="40" value="-50,50 250,250"> <br><br>
+<input type="button" value="Add Line" onclick="newline()">
+Auto Redraw<input id="autoredraw" type="checkbox" checked><br><br>
+<input type="button" value="Clear Canvas" onclick="ClearCanvas()"><br><br>
+<input type="button" value="Clear Lines" onclick="ClearLines()"><br><br>
+<input type="button" value="ReDraw" onclick="ReDraw()"><br>
+<p id="canvasparameters"></p>
+</div>
+
+<div class="divider"></div>
+
+<div id="pathlist" class="scrolltable"></div>
+
+<div class="status">
+Status: <br>
+<input type="button" value="ClearStatus" onclick="ClearStatus()">
+  Debug Mode: <input id="statusdebug" onchange="DebugModeOn(this)" type="checkbox">
+<br><textarea id="status" rows="10" cols="80" value="status..."></textarea>
+</div>
+
+</body>
+</html>

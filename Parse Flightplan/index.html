@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width" />
+  <title>Parse Flightplan</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body onload="SetupParseFlightplan()">
+  <h1>Parse Flightplan</h1>
+
+  <div class="floatleft">
+  <textarea id="fp" ondrop="dropfp()"></textarea>
+  </div>
+
+  <div id="edit" class="floatleft">
+  <input type="button" value="Clear" onclick="ClearFlightplan()">
+  <input type="button" value="Parse" onclick="Parse()"><br>
+  Declination: <input id="declination" onchange="DeclinationChanged()" size="10" type="textbox" value="10"><br>
+  <input type="button" value="Plot Points" onclick="PlotPoints()">
+  
+  </div>
+
+  <div id="canvasdiv">
+    <canvas id="canvas" width="400" height="400">
+    Your browser does not support the HTML canvas tag.</canvas>
+  </div>
+  <div class="divider"></div>
+
+  <div id="routetable" class="floatleft">Route Table...</div>
+
+  <div class="floatleft">
+  <br><input type="button" value="Clear Status" onclick="ClearStatus()">
+  Search:<input id="srchtext" type="textbox" value="">
+  <input type="button" onclick="FindInStatus()" value="Find">
+  <input type="button" onclick="FindNextInStatus()" value="Find Next">
+  <input id="debug" type="checkbox" onchange="DebugMode()">Debug
+  </div>
+  <div class="floatleft">
+  Status/Debug...<br>
+  <textarea id="status" value="Status..."></textarea>
+  </div>
+
+  <script src="img/jquery.min.js"></script>
+  <script src="../Flight Functions/script.js"></script>
+  <script src="../Library/script.js"></script>
+  <script src="./script.js"></script>
+</body>
+</html>
