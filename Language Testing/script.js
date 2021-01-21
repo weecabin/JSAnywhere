@@ -2,9 +2,9 @@
 function SetupLanguageTesting()
 {
   TestHTMLTableWithLookup();
-  DefaultFnParams();
-  AddStatus();
-  TestObjectArrays();
+  //DefaultFnParams();
+  //AddStatus();
+  //TestObjectArrays();
 }
 /**********************************************
 ***********************************************
