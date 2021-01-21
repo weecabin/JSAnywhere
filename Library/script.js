@@ -337,8 +337,8 @@ function DrawPath(plotpoints,showVertices=true,rotate=0)
   let ydelta=norm.yrange*mult;
   let xspace=Math.abs(canvas.width-xdelta);
   let yspace=Math.abs(canvas.height-ydelta);
-  AddStatus("x delta/space "+xdelta+","+xspace,true);
-  AddStatus("y delta/space "+ydelta+","+yspace,true);
+  AddStatus("x delta/space "+xdelta+","+xspace);
+  AddStatus("y delta/space "+ydelta+","+yspace);
   if (xspace<yspace)
   {
     xspace=0;
