@@ -31,4 +31,46 @@ Your browser does not support the HTML canvas tag.</canvas>
   <script src="img/jquery.min.js"></script>
   <script src="script.js"></script>
 </body>
+</html> <!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width" />
+  <title>Play</title>
+  <link rel="stylesheet" href="style.css" />
+  <h1>Play</h1>
+</head>
+<body onload="setup()">
+
+<div id="canvasdiv">
+<canvas id="canvas" width="400" height="400">
+Your browser does not support the HTML canvas tag.</canvas>
+</div>
+
+<div id="drawitemdiv">
+<select name="Objects" id="objects">
+  <option value="" disabled="disabled" selected="selected">Select an object to draw</option>
+  <option value="Circle">Circle</option>
+  <option value="Rectangle">Rectangle</option>
+  <option value="Square">Square</option>
+  <option value="Centered X">Centered X</option>
+</select>
+<input id="showvertices" type="checkbox" checked> Show Vertices<br>
+<input id="drawitem" type="button" value="Draw" onclick="drawItem()">
+<input type="button" value="Clear Drawing" onclick="Clear()"><br><br>
+<input type="button" value="Animate" onclick="Animate(true)">
+<input type="button" value="Stop" onclick="Animate(false)">
+</div>
+
+<div class="divider"/>
+
+<div class="floatleft">
+  Status/Debug...<br>
+  <textarea id="status" value="Status..."></textarea>
+</div>
+
+  <script src="img/jquery.min.js"></script>
+  <script src="../Library/script.js"></script>
+  <script src="script.js"></script>
+</body>
 </html>
