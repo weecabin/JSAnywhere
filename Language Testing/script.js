@@ -19,20 +19,31 @@ let lookuptable=
 ];
 function TestHTMLTableWithLookup()
 {
+  // create the table
   AddStatus("\nEntering TestHTMLTableWithLookup");
+  // these are the table headings
   let tbl = new MyTable(["Action","Fix Name","latitude","longitude"]);
+  // now add the rows
   for (let wp of lookuptable)
   {
+    // here's the good stuff, we want to create a button
+    // with an onclick="GetRow('idtext')" parameter, where idtext 
+    // is the id of an entry in the lookup table corresponding
+    // to this row.
     let button="<input type=\"button\" value=\"Get\" onclick=\"GetRow(\'"+wp.id+"\')\">"
     tbl.AddRow([button,wp.id,wp.lat,wp.lon]);
   }
+  // insert the table in the div
   get("tablediv").innerHTML=tbl.GetHTML();
 }
 
+// this is the function called in the button onclick event.
+// selectid contains the id of the row in the table that built the row 
+// in the HTML table.
 function GetRow(selectedid)
 {
   AddStatus("Entering GetRow with id="+selectedid);
-  //now print out the entire content of the KSAN row of the lookup table
+  //now print out the entire content of the "id" row of the lookup table
   let row=lookuptable.filter(x=>x.id==selectedid)[0];
   AddStatus(
     "id="+row.id+
