@@ -12,7 +12,23 @@ Return Value
 *************************************************************/ 
 
 
+/*************************************************************
+**************************************************************
+                         Quicky Functions
 
+Description
+
+Parameters
+
+Return Value
+
+*************************************************************/ 
+const ToDegrees = radians => (radians * 180) / Math.PI
+const ToRadians = degrees => (degrees * Math.PI) / 180
+
+const EPSILON = 0.00000001
+const AreEqual = (one, other, epsilon = EPSILON) =>
+  Math.abs(one - other) < epsilon
 /*************************************************************
 **************************************************************
 FunctionName: get
@@ -56,6 +72,144 @@ function AddStatus(str,alwaysShow=false)
     get("status").value += "\n"+str;
 }
 
+/*************************************************************
+**************************************************************
+                       class Vector
+
+Description
+
+Parameters
+
+Return Value
+
+*************************************************************/ 
+
+class Vector
+{
+  constructor(XorLength,YorAngle,rectangular=true)
+  {
+    if (rectangular)
+    {
+    this.x=XorLength;
+    this.y=YorAngle;
+    this.angle=Math.atan(this.y/this.x);
+    }
+    else
+    {
+      this.angle=ToRadians(YorAngle);
+      this.x=XorLength*Math.cos(this.angle);
+      this.y=XorLength*Math.sin(this.angle);
+      AddStatus("Polar entry = "+this.x+","+this.y);
+    }
+  }
+  //functions that modify this vector
+  SetLength(len)
+  {
+    this.x=Math.cos(this.angle)*len;
+    this.y=Math.sin(this.angle)*len;
+  }
+  RotateMe(degrees)
+  {
+    this.angle+=ToRadians(degrees);
+    this.x=this.GetLength()*Math.cos(this.angle);
+    this.y=this.GetLength()*Math.sin(this.angle);
+  }
+
+  //functions that return a Vector object
+  Add(v)
+  {
+    return(new Vector(this.x+v.x,this.y+v.y));
+  }
+
+  Unit()
+  {
+    let a = Math.atan(this.y/this.x);
+    return new Vector(Math.cos(a),Math.sin(a));
+  }
+
+  Rotate(degrees)
+  {
+    return new Vector(1,ToDegrees(this.angle+ToRadians(degrees)),false);
+  }
+
+  Normal()
+  {
+    return this.Rotate(90);
+  }
+
+  //functions that return scalar results
+  Dot(v)
+  {
+    return v.x*this.x+v.y*this.y;
+  }
+
+  GetMyAngle(degrees=false)
+  {
+    if (degrees)return ToDegrees(this.angle);
+    return this.angle;
+  }
+
+  GetLength()
+  {
+    //return Math.sqrt(Math.pow(this.x,2)+Math.pow(this.y,2))
+    return Math.hypot(this.x,this.y);
+  }
+
+  AngleBetween(other) 
+  {
+    return ToDegrees(Math.acos(this.Dot(other)/(this.GetLength()*other.GetLength())))
+  }
+  
+  // Functions that return boolean
+  IsSameDirection(other) 
+  {
+    const dotProduct = this.Unit().Dot(other.Unit())
+    return AreEqual(dotProduct, 1)
+  }
+
+  IsOppositeDirection(other) 
+  {
+    const dotProduct = this.Unit().Dot(other.Unit())
+    return AreEqual(dotProduct, -1)
+  }
+
+  IsPerpendicularTo(other) 
+  {
+    const dotProduct = this.Unit().Dot(other.Unit())
+    return AreEqual(dotProduct, 0)
+  }
+
+  IsEqual(other)
+  {
+    return AreEqual(this.x,other.x) && AreEqual(this.y,other.y);
+  }
+}
+
+/*************************************************************
+**************************************************************
+                       class MovingVector
+
+Description
+
+Parameters
+
+Return Value
+
+*************************************************************/ 
+class MovingVector
+{
+  constructor(xlen,ylen,startx,starty)
+  {
+    this.vector= new Vector(xlen,ylen);
+    this.xpos=startx;
+    this.ypos=starty;
+  }
+  Move(distance)
+  {
+    this.xpos+=this.vector.x;
+    this.ypos+=this.vector.y;
+  }
+}
 /*************************************************************
 **************************************************************
 Class Name:           MyTable

@@ -1,11 +1,70 @@
 
 function SetupLanguageTesting()
 {
-  TestHTMLTableWithLookup();
+  TestMovingVector()
+  TestVectorMath();
+  //TestHTMLTableWithLookup();
   //DefaultFnParams();
   //AddStatus();
   //TestObjectArrays();
 }
+
+/**********************************************
+***********************************************
+               Moving Vector
+***********************************************
+**********************************************/
+
+
+function TestMovingVector()
+{
+  let mv = new MovingVector(1,-1,200,200);
+  AddStatus(JSON.stringify(mv));
+  mv.Move(10);
+  AddStatus(JSON.stringify(mv));
+  mv.vector.RotateMe(90);
+  mv.Move(10);
+  AddStatus(JSON.stringify(mv));
+}
+
+/**********************************************
+***********************************************
+               Vector Math
+***********************************************
+**********************************************/
+
+
+function TestVectorMath()
+{
+  let v1 = new Vector(1,1);
+  let v2 = new Vector(2,3);
+  let v3 = new Vector(5,0);
+  let v4 = new Vector(Math.sqrt(2),45,false);
+  AddStatus("v1,v2,v3,v4 = "+
+    JSON.stringify(v1)+","+
+    JSON.stringify(v2)+
+    JSON.stringify(v3)+
+    JSON.stringify(v4)
+    );
+  let v1plusv2 = v1.Add(v2);
+  AddStatus("v1+v2 = "+JSON.stringify(v1plusv2));
+  let v2unit=v2.Unit();
+  AddStatus("v2 Unit Vector/Length = "+JSON.stringify(v2unit)+" / "+v2unit.GetLength());
+  let v1dotv2=v1.Dot(v2);
+  AddStatus("v1 dot v2 ="+v1dotv2);
+  AddStatus("angle between v1 v2="+v1.AngleBetween(v2)+"deg");
+  AddStatus("angle between v1 v3="+v1.AngleBetween(v3)+"deg");
+  AddStatus("angle between v1 v4="+v1.AngleBetween(v4)+"deg");
+  AddStatus("are equal v1 v4="+(v1.IsEqual(v1,v4)?"yes":"no"));
+  AddStatus("v1 Normal vector="+JSON.stringify(v1.Normal()));
+  v1.RotateMe(-45);
+  AddStatus("v1 rotated -45 = "+JSON.stringify(v1));
+  v1.RotateMe(45);
+  v1.SetLength(2);
+  AddStatus("v1 rotated 45 with length 2 = "+JSON.stringify(v1));
+}
+
+
 /**********************************************
 ***********************************************
        Object Arrays and HTML tables
