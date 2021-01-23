@@ -23,6 +23,8 @@ function Setup()
 
 function TestVector()
 {
+  let p3=new Vector(-50,28);
+  AddStatus("new Vector(-50,-28) dir = "+p3.GetDirection());
   let p1=new Vector(8,4);
   let p2=new Vector(4,7);
   let proj=p2.ProjectOn(p1);
@@ -45,6 +47,7 @@ function TestVector()
     let v1projv2 = v1.ProjectOn(v2);
     AddStatus("v2= "+JSON.stringify(v2));
     AddStatus("v1 projected on v2\n"+JSON.stringify(v1projv2));
+    AddStatus("v1projv2 direction = "+v1projv2.GetDirection());
     AddStatus("v2unit= "+JSON.stringify(v2unit));
     AddStatus("v2norm= "+JSON.stringify(v2norm));
     AddStatus("angle between v2unit and v2norm="+v2unit.AngleBetween(v2norm));

@@ -13,6 +13,9 @@ ctx = canvas.getContext("2d");
 canvas.width=400;
 canvas.height=400;
 
+this.ctx.translate(0,this.canvas.height)
+this.ctx.scale(1,-1);
+
 DrawPath([[0,0],[400,400]]);
 DrawPath([[0,400],[400,0]]);
 }
@@ -39,6 +42,7 @@ function Animate(start)
   let angle=Math.PI/8;
   let movingVector = new MovingVector(2,.55,200,200);
   Objs.push(movingVector);
+  get("info").innerHTML="Objects: "+Objs.length;
   if (Objs.length>1)return;
   AddStatus(JSON.stringify(Objs));
   var id = setInterval(frame, 10);
@@ -78,16 +82,26 @@ function Animate(start)
             //AddStatus("j = "+JSON.stringify(Objs[j]));
             //Objs[i].vector.Negate();
             //Objs[j].vector.Negate();
-            let normal = 
+            if(false)
+            {
+              let normal = 
               new Vector(Objs[j].xpos-Objs[i].xpos,Objs[j].ypos-Objs[i].ypos);
-            let normdir = normal.GetDirection();
-            //AddStatus("normal = "+JSON.stringify(normal));
-            Objs[i].vector.SetDirection(normdir+180);
-            Objs[j].vector.SetDirection(normdir);
+              let normdir = normal.GetDirection();
+              let tangent = normal.UnitNormal();
+              //AddStatus("normal = "+JSON.stringify(normal));
+              Objs[i].vector.SetDirection(normdir+180);
+              Objs[j].vector.SetDirection(normdir);
+            }
+            else
+            {
+              CollisionBounce(Objs[i],Objs[j])
+              //runAnimate=false;
+              //return;
+            }
             Objs[i].xpos+=Objs[i].vector.x;
             Objs[i].ypos+=Objs[i].vector.y;
-            Objs[j].xpos+=2*Objs[j].vector.x;
-            Objs[j].ypos+=2*Objs[j].vector.y;
+            Objs[j].xpos+=Objs[j].vector.x;
+            Objs[j].ypos+=Objs[j].vector.y;
             
           }
         }
@@ -100,6 +114,39 @@ function Animate(start)
       }
     }
   }
+}
+function CollisionBounce(mv1,mv2)
+{
+  /*
+  In an elastic collision between spheres, bodies retain their speed in the 
+  direction tangent to the collision. they swap speeds in the direction
+  normal to the collision point.
+  */
+  // get the vector between the two center points
+  // this will be normal to the collision point
+  let normal = new Vector(mv2.xpos-mv1.xpos,mv2.ypos-mv1.ypos);
+  // get the tangent vector
+  let tangent = normal.UnitNormal();
+  //AddStatus("normal\n"+JSON.stringify(normal));
+  //AddStatus("tangent\n"+JSON.stringify(tangent));
+  //setup mv2
+  let projTangent2=mv2.vector.ProjectOn(tangent);
+  let otherNormal2=mv1.vector.ProjectOn(normal);
+  let newVector2=projTangent2.Add(otherNormal2);
+
+  //AddStatus("normal dir = "+normal.GetDirection());
+  //AddStatus("tangent dir = "+tangent.GetDirection());
+  //AddStatus("projTangent2 dir = "+projTangent2.GetDirection());
+  //AddStatus("otherNormal2 dir = "+otherNormal2.GetDirection());
+  //AddStatus("newVector2 dir = "+newVector2.GetDirection());
+
+  // setup mv1
+  let projTangent1=mv1.vector.ProjectOn(tangent);
+  let OtherNormal1=mv2.vector.ProjectOn(normal);
+  let newVector1=projTangent1.Add(OtherNormal1);
+
+  mv1.vector=newVector1;
+  mv2.vector=newVector2; 
 }
 
 function DistBetween(mv1,mv2)
