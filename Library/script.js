@@ -114,6 +114,12 @@ class Vector
     this.x=this.GetLength()*Math.cos(this.angle);
     this.y=this.GetLength()*Math.sin(this.angle);
   }
+  Negate()
+  {
+    this.x*=-1;
+    this.y*=-1;
+    this.angle=Math.atan(this.y/this.x);
+  }
 
   //functions that return a Vector object
   Add(v)

@@ -2,7 +2,7 @@ $(function() {
   console.log('Play');
 });
 
-let circleDiameter=10;
+let circleRadius=10;
 function setup()
 {
 debugMode=true;
@@ -41,7 +41,7 @@ function Animate(start)
   Objs.push(movingVector);
   if (Objs.length>1)return;
   AddStatus(JSON.stringify(Objs));
-  var id = setInterval(frame, 5);
+  var id = setInterval(frame, 10);
   function frame() 
   {
     //AddStatus("in frame, ");
@@ -55,13 +55,26 @@ function Animate(start)
       {
         let testx=mv.xpos + mv.vector.x;
         let testy=mv.ypos + mv.vector.y;
-        if (testx<circleDiameter|| testx>(canvas.width-circleDiameter))
+        if (testx<circleRadius|| testx>(canvas.width-circleRadius))
           mv.vector.x*=-1;
-        if (testy<circleDiameter || testy>(canvas.height-circleDiameter))
+        if (testy<circleRadius || testy>(canvas.height-circleRadius))
           mv.vector.y*=-1;
         mv.xpos+=mv.vector.x;
         mv.ypos+=mv.vector.y;
       }
+      for (let i=0;i<Objs.length-1;i++)
+      {
+        for (let j=i+1;j<Objs.length;j++)
+        {
+          if (DistBetween(Objs[i],Objs[j])<(2*circleRadius))
+          {
+            //AddStatus("collision");
+            Objs[i].vector.Negate();
+            Objs[j].vector.Negate();
+          }
+        }
+      }
+
       Clear()
       for (let mv of Objs)
       {
@@ -70,6 +83,14 @@ function Animate(start)
     }
   }
 }
+
+function DistBetween(mv1,mv2)
+{
+  let dist = Math.hypot(mv2.xpos-mv1.xpos,mv2.ypos-mv1.ypos); 
+  //AddStatus("dist="+dist);
+  return dist;
+}
+
 
 var canvas;
 var ctx;
@@ -92,7 +113,7 @@ function drawItem(x,y)
   {
     case "Circle":
     ctx.beginPath();
-    ctx.arc(x, y, circleDiameter, 0, 2 * Math.PI);
+    ctx.arc(x, y, circleRadius, 0, 2 * Math.PI);
     ctx.stroke();
     break;
     case "Square":
