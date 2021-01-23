@@ -118,6 +118,16 @@ class Vector
   }
 
   //functions that return a Vector object
+  ScaleBy(scaleFactor)
+  {
+    let scaled=new Vector(this.x*scaleFactor,this.y*scaleFactor);
+    return scaled;
+  }
+  ProjectOn(other)
+  {
+    const unit = other.Unit()
+    return unit.ScaleBy(this.Dot(unit))
+  }
   Add(v)
   {
     return(new Vector(this.x+v.x,this.y+v.y));
@@ -134,9 +144,11 @@ class Vector
     return new Vector(this.x,this.y).SetDirection(this.GetDirection()+degrees);
   }
 
-  Normal()
+  UnitNormal()
   {
-    return this.Rotate(90);
+    let unit=this.Unit();
+    unit.SetDirection(unit.GetDirection()+90);
+    return unit;
   }
 
   //functions that return scalar results
@@ -147,16 +159,14 @@ class Vector
     if(x==0)x=.00000000001;
     let dir=(Math.atan(this.y/x))/this.toRadian;
     //AddStatus(dir);
-    //if (x<0 && this.y>0)dir+=180;
-    //if (x<0 && this.y<0)dir=180+dir;
     if (x<0)dir+=180;
     if (x>0 && this.y<0)dir+=360;
     //AddStatus(dir);
     return dir;
   }
-  Dot(v)
+  Dot(other)
   {
-    return v.x*this.x+v.y*this.y;
+    return other.x * this.x + other.y * this.y;
   }
 
   GetLength()
@@ -167,8 +177,11 @@ class Vector
 
   AngleBetween(other) 
   {
-    let between=other.GetDirection()-this.GetDirection();
-    if (between>180)between-=360;
+    //AddStatus("direction: other,this="+other.GetDirection()+","+ this.GetDirection());
+    let between=(other.GetDirection()-this.GetDirection());
+    if (between<0)between+=360;
+    if (between>180)between=between-360;
+    //AddStatus("between="+between);
     return between;
   }
   
