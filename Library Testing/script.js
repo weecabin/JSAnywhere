@@ -23,16 +23,32 @@ function Setup()
 
 function TestVector()
 {
+  let p1=new Vector(8,4);
+  let p2=new Vector(4,7);
+  let proj=p2.ProjectOn(p1);
+  AddStatus("p2Project on p1="+JSON.stringify(proj));
   let v1=new Vector(1,0); 
-  let v2=new Vector(1,0);
+  let v2=new Vector(2,0);
+  let v1n = v1.UnitNormal();
+  let v1u = v1.Unit();
   AddStatus("v1="+JSON.stringify(v1));
   AddStatus("v2="+JSON.stringify(v2));
+  AddStatus("v1.Normal()="+JSON.stringify(v1n));
+  AddStatus("v1.Unit()="+JSON.stringify(v1u));
   AddStatus("Rotate v2 then print its heading \nand the difference between it and v1");
   for (let dir=0;dir<720;dir=dir+45)
   {
     AddStatus("\nv2 Direction="+dir);
     v2.SetDirection(dir);
+    let v2unit = v2.Unit();
+    let v2norm = v2.UnitNormal();
+    let v1projv2 = v1.ProjectOn(v2);
     AddStatus("v2= "+JSON.stringify(v2));
+    AddStatus("v1 projected on v2\n"+JSON.stringify(v1projv2));
+    AddStatus("v2unit= "+JSON.stringify(v2unit));
+    AddStatus("v2norm= "+JSON.stringify(v2norm));
+    AddStatus("angle between v2unit and v2norm="+v2unit.AngleBetween(v2norm));
+    AddStatus("v1.GetDirection()="+v1.GetDirection()); 
     AddStatus("v2.GetDirection()="+v2.GetDirection());
     AddStatus("v1.AngleBetween(v2)="+v1.AngleBetween(v2));
   }
