@@ -86,21 +86,11 @@ Return Value
 
 class Vector
 {
-  constructor(XorLength,YorAngle,rectangular=true)
+  constructor(x,y)
   {
-    if (rectangular)
-    {
-    this.x=XorLength;
-    this.y=YorAngle;
-    this.angle=Math.atan(this.y/this.x);
-    }
-    else
-    {
-      this.angle=ToRadians(YorAngle);
-      this.x=XorLength*Math.cos(this.angle);
-      this.y=XorLength*Math.sin(this.angle);
-      AddStatus("Polar entry = "+this.x+","+this.y);
-    }
+    this.x=x;
+    this.y=y;
+    this.toRadian=Math.PI/180;
   }
   //functions that modify this vector
   SetLength(len)
@@ -110,7 +100,6 @@ class Vector
   }
   RotateMe(degrees)
   {
-    this.angle+=ToRadians(degrees);
     this.x=this.GetLength()*Math.cos(this.angle);
     this.y=this.GetLength()*Math.sin(this.angle);
   }
@@ -118,7 +107,14 @@ class Vector
   {
     this.x*=-1;
     this.y*=-1;
-    this.angle=Math.atan(this.y/this.x);
+  }
+  SetDirection(direction)
+  {
+    let dir=direction%360;
+    if (dir<0)dir+=360;
+    let len=Math.hypot(this.x,this.y);
+    this.x=len*Math.cos(dir*this.toRadian);
+    this.y=len*Math.sin(dir*this.toRadian);
   }
 
   //functions that return a Vector object
@@ -135,7 +131,7 @@ class Vector
 
   Rotate(degrees)
   {
-    return new Vector(1,ToDegrees(this.angle+ToRadians(degrees)),false);
+    return new Vector(this.x,this.y).SetDirection(this.GetDirection()+degrees);
   }
 
   Normal()
@@ -144,15 +140,23 @@ class Vector
   }
 
   //functions that return scalar results
+  GetDirection()
+  {
+    //AddStatus("Entering GetDirection");
+    let x=this.x;
+    if(x==0)x=.00000000001;
+    let dir=(Math.atan(this.y/x))/this.toRadian;
+    //AddStatus(dir);
+    //if (x<0 && this.y>0)dir+=180;
+    //if (x<0 && this.y<0)dir=180+dir;
+    if (x<0)dir+=180;
+    if (x>0 && this.y<0)dir+=360;
+    //AddStatus(dir);
+    return dir;
+  }
   Dot(v)
   {
     return v.x*this.x+v.y*this.y;
-  }
-
-  GetMyAngle(degrees=false)
-  {
-    if (degrees)return ToDegrees(this.angle);
-    return this.angle;
   }
 
   GetLength()
@@ -163,7 +167,9 @@ class Vector
 
   AngleBetween(other) 
   {
-    return ToDegrees(Math.acos(this.Dot(other)/(this.GetLength()*other.GetLength())))
+    let between=other.GetDirection()-this.GetDirection();
+    if (between>180)between-=360;
+    return between;
   }
   
   // Functions that return boolean

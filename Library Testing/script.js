@@ -8,16 +8,35 @@ function Setup()
 {
   try
   {
-    TestAverageData();
-    AddStatus();
-    TableTest();
-    AddStatus();
-    TestNormalizeData();
+    TestVector();
+    //TestAverageData();
+    //AddStatus();
+    //TableTest();
+    //AddStatus();
+    //TestNormalizeData();
   }
   catch(err)
   {
     console.log(err)
   }
+}
+
+function TestVector()
+{
+  let v1=new Vector(1,0); 
+  let v2=new Vector(1,0);
+  AddStatus("v1="+JSON.stringify(v1));
+  AddStatus("v2="+JSON.stringify(v2));
+  AddStatus("Rotate v2 then print its heading \nand the difference between it and v1");
+  for (let dir=0;dir<720;dir=dir+45)
+  {
+    AddStatus("\nv2 Direction="+dir);
+    v2.SetDirection(dir);
+    AddStatus("v2= "+JSON.stringify(v2));
+    AddStatus("v2.GetDirection()="+v2.GetDirection());
+    AddStatus("v1.AngleBetween(v2)="+v1.AngleBetween(v2));
+  }
+  AddStatus("Exiting TestVector");
 }
 
 function TestNormalizeData()
