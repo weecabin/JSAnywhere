@@ -11,7 +11,7 @@ canvas = document.getElementById("canvas");
 ctx = canvas.getContext("2d");
 
 canvas.width=400;
-canvas.heighht=400;
+canvas.height=400;
 
 DrawPath([[0,0],[400,400]]);
 DrawPath([[0,400],[400,0]]);
@@ -55,10 +55,15 @@ function Animate(start)
       {
         let testx=mv.xpos + mv.vector.x;
         let testy=mv.ypos + mv.vector.y;
-        if (testx<circleRadius|| testx>(canvas.width-circleRadius))
+        if ((testx<circleRadius) && (mv.vector.x<0))
           mv.vector.x*=-1;
-        if (testy<circleRadius || testy>(canvas.height-circleRadius))
+        else if ((testx>(canvas.width-circleRadius))&&(mv.vector.x>0))
+          mv.vector.x*=-1;
+        if ((testy<circleRadius) && (mv.vector.y<0))
           mv.vector.y*=-1;
+        else if ((testy>(canvas.height-circleRadius)) && (mv.vector.y>0))
+          mv.vector.y*=-1;
+
         mv.xpos+=mv.vector.x;
         mv.ypos+=mv.vector.y;
       }
@@ -69,8 +74,21 @@ function Animate(start)
           if (DistBetween(Objs[i],Objs[j])<(2*circleRadius))
           {
             //AddStatus("collision");
-            Objs[i].vector.Negate();
-            Objs[j].vector.Negate();
+            //AddStatus("i = "+JSON.stringify(Objs[i]));
+            //AddStatus("j = "+JSON.stringify(Objs[j]));
+            //Objs[i].vector.Negate();
+            //Objs[j].vector.Negate();
+            let normal = 
+              new Vector(Objs[j].xpos-Objs[i].xpos,Objs[j].ypos-Objs[i].ypos);
+            let normdir = normal.GetDirection();
+            //AddStatus("normal = "+JSON.stringify(normal));
+            Objs[i].vector.SetDirection(normdir+180);
+            Objs[j].vector.SetDirection(normdir);
+            Objs[i].xpos+=Objs[i].vector.x;
+            Objs[i].ypos+=Objs[i].vector.y;
+            Objs[j].xpos+=2*Objs[j].vector.x;
+            Objs[j].ypos+=2*Objs[j].vector.y;
+            
           }
         }
       }
