@@ -10,7 +10,7 @@
 <body onload="setup()">
 
 <div id="canvasdiv">
-<canvas id="canvas" width="400" height="400">
+<canvas id="canvas" width="400" height="800">
 Your browser does not support the HTML canvas tag.</canvas>
 </div>
 
@@ -25,8 +25,9 @@ Your browser does not support the HTML canvas tag.</canvas>
 <input id="showvertices" type="checkbox" checked> Show Vertices<br>
 <input id="drawitem" type="button" value="Draw" onclick="drawItem()">
 <input type="button" value="Clear Drawing" onclick="Clear()"><br><br>
-<input type="button" value="Animate" onclick="Animate(true)">
+<input type="button" value="Random" onclick="Animate(true)">
 <input type="button" value="Stop" onclick="Animate(false)">
+<p id="info" value=""/>
 </div>
 
 <div class="divider"/>

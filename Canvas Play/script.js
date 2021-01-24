@@ -11,13 +11,10 @@ canvas = document.getElementById("canvas");
 ctx = canvas.getContext("2d");
 
 canvas.width=400;
-canvas.height=400;
+canvas.height=800;
 
 this.ctx.translate(0,this.canvas.height)
 this.ctx.scale(1,-1);
-
-DrawPath([[0,0],[400,400]]);
-DrawPath([[0,400],[400,0]]);
 }
 
 let runAnimate=false;
@@ -40,7 +37,7 @@ function Animate(start)
     return;
   }
   let angle=Math.PI/8;
-  let movingVector = new MovingVector(2,.55,200,200);
+  let movingVector = new MovingVector(2,2,200,200);
   Objs.push(movingVector);
   get("info").innerHTML="Objects: "+Objs.length;
   if (Objs.length>1)return;
@@ -77,11 +74,6 @@ function Animate(start)
         {
           if (DistBetween(Objs[i],Objs[j])<(2*circleRadius))
           {
-            //AddStatus("collision");
-            //AddStatus("i = "+JSON.stringify(Objs[i]));
-            //AddStatus("j = "+JSON.stringify(Objs[j]));
-            //Objs[i].vector.Negate();
-            //Objs[j].vector.Negate();
             if(false)
             {
               let normal = 
@@ -170,8 +162,8 @@ function drawItem(x,y)
   //console.log(sel.value);
   if (x==undefined)
   {
-    x = Math.floor(Math.random() * 390);
-    y = Math.floor(Math.random() * 390);
+    x = Math.floor(Math.random() * circleRadius-10);
+    y = Math.floor(Math.random() * circleRadius-10);
   }
   //console.log(x+","+y);
   switch (sel.value)
@@ -228,5 +220,5 @@ function DrawPath(points)
 
 function Clear()
 {
-  ctx.clearRect(0,0,400,400);
+  ctx.clearRect(0,0,400,800);
 }
