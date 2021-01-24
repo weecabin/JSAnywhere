@@ -2,7 +2,7 @@ $(function() {
   console.log('Play');
 });
 
-let circleRadius=10;
+let circleRadius=9.5;
 function setup()
 {
 debugMode=true;
@@ -36,11 +36,37 @@ function Animate(start)
     AddStatus("Returning");
     return;
   }
-  let angle=Math.PI/8;
-  let movingVector = new MovingVector(2,2,200,200);
-  Objs.push(movingVector);
-  get("info").innerHTML="Objects: "+Objs.length;
-  if (Objs.length>1)return;
+  //let angle=Math.PI/8;
+  if (get("pool").checked)
+  {
+    Objs=[];
+    let qx = 200+Number(get("offset").value);
+    let q = new MovingVector(0,2,qx,200);
+    q.color="red";
+    Objs.push(q);
+    Objs.push(new MovingVector(0,0,200,600));
+
+    Objs.push(new MovingVector(0,0,210,618));
+    Objs.push(new MovingVector(0,0,190,618));
+
+    Objs.push(new MovingVector(0,0,180,636));
+    Objs.push(new MovingVector(0,0,200,636));
+    Objs.push(new MovingVector(0,0,220,636));
+
+    Objs.push(new MovingVector(0,0,210,654));
+    Objs.push(new MovingVector(0,0,190,654));
+
+    Objs.push(new MovingVector(0,0,200,672));
+    
+  }
+  else
+  {
+    let movingVector = new MovingVector(1,1,-circleRadius,-circleRadius);
+    if (Objs.length==0)movingVector.color="red";
+    Objs.push(movingVector);
+    get("info").innerHTML="Objects: "+Objs.length;
+    if (Objs.length>1)return;
+  }
   AddStatus(JSON.stringify(Objs));
   var id = setInterval(frame, 10);
   function frame() 
@@ -52,6 +78,7 @@ function Animate(start)
     } 
     else 
     {
+      // bump all positions
       for (let mv of Objs)
       {
         let testx=mv.xpos + mv.vector.x;
@@ -67,7 +94,8 @@ function Animate(start)
 
         mv.xpos+=mv.vector.x;
         mv.ypos+=mv.vector.y;
-      }
+      } 
+      // look for collisions
       for (let i=0;i<Objs.length-1;i++)
       {
         for (let j=i+1;j<Objs.length;j++)
@@ -90,11 +118,14 @@ function Animate(start)
               //runAnimate=false;
               //return;
             }
+            Objs[i].Move();
+            Objs[j].Move();
+            /*
             Objs[i].xpos+=Objs[i].vector.x;
             Objs[i].ypos+=Objs[i].vector.y;
             Objs[j].xpos+=Objs[j].vector.x;
             Objs[j].ypos+=Objs[j].vector.y;
-            
+            */
           }
         }
       }
@@ -102,7 +133,7 @@ function Animate(start)
       Clear()
       for (let mv of Objs)
       {
-        drawItem(mv.xpos,mv.ypos);
+        drawItem(mv.xpos,mv.ypos,mv.color);
       }
     }
   }
@@ -151,8 +182,9 @@ function DistBetween(mv1,mv2)
 
 var canvas;
 var ctx;
-function drawItem(x,y)
+function drawItem(x,y,color="black")
 {
+  //AddStatus(color);
   let sel=document.getElementById("objects");
   if (sel.value.length==0)
   {
@@ -171,6 +203,11 @@ function drawItem(x,y)
     case "Circle":
     ctx.beginPath();
     ctx.arc(x, y, circleRadius, 0, 2 * Math.PI);
+    if (color=="red")
+    {
+      ctx.fillStyle=color;
+      ctx.fill();
+    }
     ctx.stroke();
     break;
     case "Square":

@@ -228,6 +228,7 @@ class MovingVector
     this.vector= new Vector(xlen,ylen);
     this.xpos=startx;
     this.ypos=starty;
+    this.color="black";
   }
   Move(distance)
   {
