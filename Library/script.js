@@ -235,6 +235,35 @@ class MovingVector
     this.xpos+=this.vector.x;
     this.ypos+=this.vector.y;
   }
+  MovingAway(that,debug=false)
+  { 
+    let thisnextx=this.xpos+this.vector.x;
+    let thisnexty=this.ypos+this.vector.y;
+
+    let thatnextx=that.xpos+that.vector.x;
+    let thatnexty=that.ypos+that.vector.y;
+
+    let dist=Math.hypot(this.xpos-that.xpos,this.ypos-that.ypos);
+    let nextdist=Math.hypot(thisnextx-thatnextx,thisnexty-thatnexty);
+
+    if (debug)
+    {
+      AddStatus("thisx = "+this.xpos);
+      AddStatus("thisy = "+this.ypos);
+      AddStatus("thatx = "+that.xpos);
+      AddStatus("thaty = "+that.ypos);
+
+      AddStatus("thisnextx = "+thisnextx);
+      AddStatus("thisnexty = "+thisnexty);
+      AddStatus("thatnextx = "+thatnextx);
+      AddStatus("thatnexty = "+thatnexty);
+
+      AddStatus("initial dist = "+dist);
+      AddStatus("next dist = "+nextdist);
+    }
+
+    return nextdist>dist;
+  }
 }
 /*************************************************************
 **************************************************************
