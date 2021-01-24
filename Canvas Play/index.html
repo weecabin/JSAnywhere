@@ -10,7 +10,7 @@
 <body onload="setup()">
 
 <div id="canvasdiv">
-<canvas id="canvas" width="400" height="800">
+<canvas id="canvas" width="400" height="800" ontouchstart="MouseDown()" ontouchend="MouseUp()" ontouchmove="MouseMove(event)">
 Your browser does not support the HTML canvas tag.</canvas>
 </div>
 
@@ -25,13 +25,13 @@ Your browser does not support the HTML canvas tag.</canvas>
 <input id="showvertices" type="checkbox" checked> Show Vertices<br>
 <input id="drawitem" type="button" value="Draw" onclick="drawItem()">
 <input type="button" value="Clear Drawing" onclick="Clear()"><br><br>
-<input type="button" value="Random" onclick="Animate(true)">
+<input type="button" value="Run" onclick="Animate(true)">
 <input type="button" value="Stop" onclick="Animate(false)"><br>
 Random<input type="radio" id="random" name="option" checked>
 Pool<input type="radio" id="pool" name="option">
 One Ball<input type="radio" id="oneball" name="option"><br>
 Offset<input id="offset" type="text" size="4" value="0">
-Speed<input id="speed" type="text" size="4" value="10">
+Speed<input id="speed" type="text" size="4" value="5">
 <p id="info" value=""/>
 </div>
 

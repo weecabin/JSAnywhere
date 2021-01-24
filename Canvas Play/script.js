@@ -15,8 +15,43 @@ canvas.height=800;
 
 this.ctx.translate(0,this.canvas.height)
 this.ctx.scale(1,-1);
+
 }
 
+function MouseDown(event)
+{
+  linePath=[];
+}
+function MouseMove(event)
+{
+  event.preventDefault();
+  //var rect = event.target.getBoundingClientRect();
+  var rect = canvas.getBoundingClientRect();
+  var x = event.touches[0].clientX + rect.left - 30; //x position within the element.
+  var y = canvas.height - event.touches[0].clientY + rect.top;  //y position within the element.
+  
+  //let x = event.touches[0].clientX+offsetx-40;
+  //let y = canvas.height-event.touches[0].clientY+offsety+10;
+  
+  if (linePath.length<2)
+    linePath.push([x,y]);
+  else
+  {
+    linePath[1][0]=x;
+    linePath[1][1]=y;
+  } 
+  //AddStatus("Mouse "+x+","+y);
+}
+function MouseUp(event)
+{
+  AddStatus("drag vector = "+JSON.stringify(linePath));
+  dragVector=JSON.parse(JSON.stringify(linePath));
+  linePath=[];
+  AddStatus(JSON.stringify(linePath)+"/"+JSON.stringify(dragVector));
+}
+
+let dragVector=[];
+let linePath=[];
 let runAnimate=false;
 let Objs=[];
 function Animate(start)
@@ -40,9 +75,9 @@ function Animate(start)
   if (get("oneball").checked)
   {
     Objs=[];
-    Objs.push(new MovingVector(0,0,200,600));
+    Objs.push(new MovingVector(0,-speed/4,200,600));
     let qx = 200+Number(get("offset").value);
-    let q = new MovingVector(0,speed,qx,500);
+    let q = new MovingVector(0,speed,qx,400);
     q.color="red";
     Objs.push(q);
   }
@@ -150,6 +185,7 @@ function Animate(start)
       }
 
       Clear()
+      DrawPath(linePath);
       for (let mv of Objs)
       {
         drawItem(mv.xpos,mv.ypos,mv.color);
@@ -201,6 +237,23 @@ function DistBetween(mv1,mv2)
 
 var canvas;
 var ctx;
+function DrawMovingVector(mv)
+{
+  switch (mv.object.type)
+  {
+    case "Circle":
+    ctx.beginPath();
+    ctx.arc(mv.xpos, mv.ypos, mv.radius, 0, 2 * Math.PI);
+    if (color=="red")
+    {
+      ctx.fillStyle=mv.color;
+      ctx.fill();
+    }
+    ctx.stroke();
+    break;
+  } 
+}
+
 function drawItem(x,y,color="black")
 {
   //AddStatus(color);

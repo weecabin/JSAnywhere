@@ -221,14 +221,17 @@ Parameters
 Return Value
 
 *************************************************************/ 
+const defaultObj={type:"circle",radius:15,color:"black"};
 class MovingVector
 {
-  constructor(xlen,ylen,startx,starty)
+  constructor(xlen,ylen,startx,starty,drawObject=defaultObj)
   {
     this.vector= new Vector(xlen,ylen);
     this.xpos=startx;
     this.ypos=starty;
-    this.color="black";
+    this.color=drawObject.color;
+    this.type=drawObject.type
+    this.radius=drawObject.radius;
   }
   Move(distance)
   {
