@@ -78,6 +78,7 @@ try
   }
   let x=canvas.width/2;
   let y=canvas.height/4;
+  AddStatus("about to test drawItem");
   if(drawItem(x,y)==undefined)
   {
     AddStatus("Returning");
