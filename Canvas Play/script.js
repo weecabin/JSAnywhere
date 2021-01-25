@@ -76,6 +76,7 @@ try
     runAnimate=false;
     return;
   }
+  AddStatus("Set Canvas");
   let x=canvas.width/2;
   let y=canvas.height/4;
   AddStatus("about to test drawItem");
