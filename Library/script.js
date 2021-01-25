@@ -135,8 +135,7 @@ class Vector
 
   Unit()
   {
-    let a = Math.atan(this.y/this.x);
-    return new Vector(Math.cos(a),Math.sin(a));
+    return new Vector(this.x,this.y).ScaleBy(1/this.GetLength());
   }
 
   Rotate(degrees)

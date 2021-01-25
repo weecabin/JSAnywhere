@@ -25,33 +25,42 @@ function MouseDown(event)
 function MouseMove(event)
 {
   event.preventDefault();
-  //var rect = event.target.getBoundingClientRect();
+
   var rect = canvas.getBoundingClientRect();
-  var x = event.touches[0].clientX + rect.left - 30; //x position within the element.
-  var y = canvas.height - event.touches[0].clientY + rect.top;  //y position within the element.
+  //x position within the element.
+  var x = event.touches[0].clientX + rect.left - 30; 
+  //y position within the element.
+  var y = canvas.height - event.touches[0].clientY + rect.top;  
   
-  //let x = event.touches[0].clientX+offsetx-40;
-  //let y = canvas.height-event.touches[0].clientY+offsety+10;
-  
-  if (linePath.length<2)
-    linePath.push([x,y]);
-  else
+  if (dragmv==undefined)
   {
-    linePath[1][0]=x;
-    linePath[1][1]=y;
-  } 
-  //AddStatus("Mouse "+x+","+y);
+    let tempmv=new MovingVector(1,1,x,y);
+    let closestmv=Objs[0];
+    let dist=DistBetween(tempmv,closestmv);
+    for(let mv of Objs)
+    {
+      let testdist=DistBetween(mv,tempmv);
+      if (testdist<dist)
+      {
+        dist=testdist;
+        closestmv=mv;
+      }
+    }
+    dragmv=closestmv;
+  }
+  dragto=[x,y]
 }
 function MouseUp(event)
 {
-  AddStatus("drag vector = "+JSON.stringify(linePath));
-  dragVector=JSON.parse(JSON.stringify(linePath));
-  linePath=[];
-  AddStatus(JSON.stringify(linePath)+"/"+JSON.stringify(dragVector));
+  let dragVector=new Vector(dragto[0]-dragmv.xpos,dragto[1]-dragmv.ypos).Unit();
+  AddStatus(JSON.stringify(dragVector));
+  dragmv.vector.SetDirection(dragVector.GetDirection());
+  //dragvector.SetLength(dragmv.GetLength());
+  dragmv=undefined;
 }
 
-let dragVector=[];
-let linePath=[];
+let dragmv;
+let dragto=[];
 let runAnimate=false;
 let Objs=[];
 function Animate(start)
@@ -185,7 +194,8 @@ function Animate(start)
       }
 
       Clear()
-      DrawPath(linePath);
+      if (dragmv!=undefined)
+        DrawPath([[dragmv.xpos,dragmv.ypos],dragto]);
       for (let mv of Objs)
       {
         drawItem(mv.xpos,mv.ypos,mv.color);
