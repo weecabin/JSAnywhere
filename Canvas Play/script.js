@@ -2,7 +2,7 @@ $(function() {
   console.log('Play');
 });
 
-let circleRadius=10;
+var circleRadius=10;
 function setup()
 {
 debugMode=true;
@@ -59,17 +59,16 @@ function MouseUp(event)
   dragmv=undefined;
 }
 
-let dragmv;
-let dragto=[];
-let runAnimate=false;
-let Objs=[];
+var dragmv;
+var dragto=[];
+var runAnimate=false;
+var Objs=[];
 function Animate(start)
 {
 try
   {
   AddStatus("in Animate, start = "+start);
   let speed=Number(get("speed").value/10);
-  AddStatus("line 72");
   runAnimate=start;
   AddStatus("test start");
   if (!start)
