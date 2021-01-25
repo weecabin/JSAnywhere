@@ -66,7 +66,7 @@ function MouseMove(event)
 function MouseUp(event)
 {
   let dragVector=new Vector(dragto[0]-dragmv.xpos,dragto[1]-dragmv.ypos).Unit();
-  AddStatus(JSON.stringify(dragVector));
+  //AddStatus(JSON.stringify(dragVector));
   dragmv.vector.SetDirection(dragVector.GetDirection());
   //dragvector.SetLength(dragmv.GetLength());
   dragmv=undefined;
@@ -77,20 +77,20 @@ function Animate(start)
 {
 try
   {
-  AddStatus("in Animate, start = "+start);
+  //AddStatus("in Animate, start = "+start);
   let speed=Number(get("speed").value/10);
   runAnimate=start;
-  AddStatus("test start");
+  //AddStatus("test start");
   if (!start)
   {
     Objs=[];
     runAnimate=false;
     return;
   }
-  AddStatus("Set Canvas");
+  //AddStatus("Set Canvas");
   let x=canvas.width/2;
   let y=canvas.height/4;
-  AddStatus("about to test drawItem");
+  //AddStatus("about to test drawItem");
   if(drawItem(x,y)==undefined)
   {
     AddStatus("Returning");
@@ -111,7 +111,7 @@ try
     let cr=circleRadius;
     let cd=cr*2;
     let dy=cd*Math.cos(30*Math.PI/180);
-    let drobj={type:"circle",radius:circleRadius,color:"black"};
+    let circ={type:"circle",radius:circleRadius,color:"black"};
     Objs=[];
     let qx = 200+Number(get("offset").value);
     let q = new MovingVector(0,speed,qx,500,
@@ -134,12 +134,22 @@ try
   }
   else
   {
-    AddStatus("in else");
+    let sel=get("objects");
+    if (sel.value.length==0)
+    {
+      window.alert("Select something!")
+      return;
+    }
+    let blackball={type:"circle",radius:circleRadius,color:"black"};
+    let blacksquare={type:"square",sidelen:circleRadius*2,color:"black"};
+    let drawobj=blackball;
+    if (sel.value=="Square")
+      drawobj=blacksquare;
     let movingVector = 
-      new MovingVector(speed,speed,0,0,{type:"circle",radius:circleRadius,color:"black"});
+      new MovingVector(speed,speed,0,0,drawobj);
     if (Objs.length==0)movingVector.drawObject.color="red";
     Objs.push(movingVector);
-    AddStatus(Objs[Objs.length-1].drawObject.color);
+    //AddStatus(Objs[Objs.length-1].drawObject.color);
     get("info").innerHTML="Objects: "+Objs.length;
     if (Objs.length>1)return;
   }
@@ -229,7 +239,7 @@ try
       }
       for (let mv of Objs)
       {
-        if (mv.drawObject.type=="circle")
+        if (mv.drawObject.type=="circle" || mv.drawObject.type=="square")
           mv.Draw(ctx);
         else
           drawItem(mv.xpos,mv.ypos,mv.color);
@@ -308,7 +318,7 @@ function DrawMovingVector(mv)
 function drawItem(x,y,color="black")
 {
   //AddStatus(color);
-  let sel=document.getElementById("objects");
+  let sel=get("objects");
   if (sel.value.length==0)
   {
     window.alert("Select something!")
@@ -317,8 +327,8 @@ function drawItem(x,y,color="black")
   //console.log(sel.value);
   if (x==undefined)
   {
-    x = Math.floor(Math.random() * circleRadius-10);
-    y = Math.floor(Math.random() * circleRadius-10);
+    x = Math.floor(Math.random() * canvas.width);
+    y = Math.floor(Math.random() * canvas.height);
   }
   //console.log(x+","+y);
   switch (sel.value)

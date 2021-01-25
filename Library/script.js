@@ -230,12 +230,31 @@ class MovingVector
     this.xpos=startx;
     this.ypos=starty;
     this.drawObject=drawObject;
+    AddStatus(JSON.stringify(this.drawObject));
   }
   Draw(ctx)
   {
     let drw=this.drawObject;
-    ctx.beginPath();
-    ctx.arc(this.xpos, this.ypos, drw.radius, 0, 2 * Math.PI);
+    switch (drw.type)
+    {
+      case "circle":
+      //{type:"circle",radius:15,color:"black"};
+      ctx.beginPath();
+      ctx.arc(this.xpos, this.ypos, drw.radius, 0, 2 * Math.PI);
+      break;
+
+      case "square":
+      //{type:"square",sidelen:15,color:"black"};
+      ctx.beginPath();
+      let x0=this.xpos-drw.sidelen/2;
+      let y0=this.ypos-drw.sidelen/2;
+      ctx.moveTo(x0,y0);
+      ctx.lineTo(x0+drw.sidelen,y0);
+      ctx.lineTo(x0+drw.sidelen,y0+drw.sidelen);
+      ctx.lineTo(x0,y0+drw.sidelen);
+      ctx.lineTo(x0,y0);
+      break;
+    }
     if (drw.color=="red")
     {
       ctx.fillStyle=drw.color;
