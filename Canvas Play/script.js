@@ -128,6 +128,7 @@ try
     let movingVector = 
       new MovingVector(speed,speed,0,0,{type:"circle",radius:circleRadius,color:"black"});
     AddStatus(JSON.stringify(Objs));
+    
     if (Objs.length==0)movingVector.drawObject.color="red";
     Objs.push(movingVector);
     AddStatus(Objs[Objs.length-1].drawObject.color);
