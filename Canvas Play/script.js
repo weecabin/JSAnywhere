@@ -65,6 +65,8 @@ let runAnimate=false;
 let Objs=[];
 function Animate(start)
 {
+try
+  {
   AddStatus("in Animate, start = "+start);
   let speed=Number(get("speed").value/10);
   runAnimate=start;
@@ -207,6 +209,11 @@ function Animate(start)
           drawItem(mv.xpos,mv.ypos,mv.color);
       }
     }
+  }
+  }
+  catch(err)
+  {
+    AddStatus(err.message);
   }
 }
 function CollisionBounce(mv1,mv2)
