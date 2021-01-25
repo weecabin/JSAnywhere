@@ -70,6 +70,7 @@ try
   AddStatus("in Animate, start = "+start);
   let speed=Number(get("speed").value/10);
   runAnimate=start;
+  AddStatus("test start");
   if (!start)
   {
     Objs=[];
