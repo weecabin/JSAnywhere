@@ -9,7 +9,7 @@ var circleRadius=10;
 var dragmv;
 var dragto=[];
 var Objs=[];
-
+var firstPass=true;
 var runAnimate=false;
 
 function setup()
@@ -21,10 +21,11 @@ function setup()
 
   canvas.width=400;
   canvas.height=800;
-
   this.ctx.translate(0,this.canvas.height)
   this.ctx.scale(1,-1);
 
+  firstPass=true;
+  circleRadius=10;
   dragto=[];
   runAnimate=false;
   Objs=[];
@@ -143,7 +144,7 @@ try
     if (Objs.length>1)return;
   }
   AddStatus(JSON.stringify(Objs));
-  var id = setInterval(frame, 5); 
+  var id = setInterval(frame, 5);
   function frame() 
   {
     try
@@ -155,6 +156,13 @@ try
     } 
     else 
     {
+      if (firstPass)
+      {
+        AddStatus("canvas.width="+canvas.width);
+        AddStatus("canvas.height="+canvas.height);
+        AddStatus("circleRadius="+circleRadius);
+        firstPass=false;
+      }
       // bump all positions
       for (let mv of Objs)
       {
@@ -217,7 +225,7 @@ try
       if (dragmv!=undefined)
       {
         DrawPath([[dragmv.xpos,dragmv.ypos],dragto]);
-        AddStatus(dragmv.xpos+","+dragmv.ypos);
+        //AddStatus(dragmv.xpos+","+dragmv.ypos);
       }
       for (let mv of Objs)
       {
