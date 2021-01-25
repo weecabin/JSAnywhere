@@ -16,8 +16,8 @@ canvas.height=800;
 this.ctx.translate(0,this.canvas.height)
 this.ctx.scale(1,-1);
 
-var test=[];
-AddStatus(test.length);
+Objs=[];
+AddStatus("Objs.length="+ Objs.length);
 }
 
 function MouseDown(event)
