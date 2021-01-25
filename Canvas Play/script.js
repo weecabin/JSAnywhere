@@ -136,6 +136,7 @@ try
     
     AddStatus(Objs.length);
     AddStatus(Objs[Objs.length-1].drawObject.color);
+    
     get("info").innerHTML="Objects: "+Objs.length;
     if (Objs.length>1)return;
   }
