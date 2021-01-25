@@ -146,6 +146,8 @@ try
   var id = setInterval(frame, 5); 
   function frame() 
   {
+    try
+    {
     //AddStatus("in frame, ");
     if (!runAnimate) 
     {
@@ -221,6 +223,11 @@ try
         else
           drawItem(mv.xpos,mv.ypos,mv.color);
       }
+    }
+    }
+    catch(err)
+    {
+      AddStatus(err.message);
     }
   }
   }
