@@ -69,6 +69,7 @@ try
   {
   AddStatus("in Animate, start = "+start);
   let speed=Number(get("speed").value/10);
+  AddStatus("line 72");
   runAnimate=start;
   AddStatus("test start");
   if (!start)
