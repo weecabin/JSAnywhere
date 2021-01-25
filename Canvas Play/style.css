@@ -2,11 +2,24 @@ body {
   background: #fafafa;
 }
 
+#status
+{
+  width:600px;
+  height:200px;
+}
+
+.divider 
+{
+  height: 2px;
+  clear: both;
+  /* background-color: #D5CF8E;  */
+} 
+
 #canvasdiv
 {
   float:left;
   width:400px;
-  height:400px;
+  height:800px;
   border:2px solid;
   background-color: red;
   padding:10px;
