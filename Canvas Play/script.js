@@ -133,6 +133,7 @@ try
     
     if (Objs.length==0)movingVector.drawObject.color="red";
     Objs.push(movingVector);
+    AddStatus(Objs.length);
     AddStatus(Objs[Objs.length-1].drawObject.color);
     get("info").innerHTML="Objects: "+Objs.length;
     if (Objs.length>1)return;
