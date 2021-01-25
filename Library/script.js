@@ -221,6 +221,7 @@ Return Value
 
 *************************************************************/ 
 const defaultObj={type:"circle",radius:15,color:"black"};
+const squareObj={type:"square",sidelen:15,color:"black"};
 class MovingVector
 {
   constructor(xlen,ylen,startx,starty,drawObject=defaultObj)
@@ -228,9 +229,19 @@ class MovingVector
     this.vector= new Vector(xlen,ylen);
     this.xpos=startx;
     this.ypos=starty;
-    this.color=drawObject.color;
-    this.type=drawObject.type
-    this.radius=drawObject.radius;
+    this.drawObject=drawObject;
+  }
+  Draw(ctx)
+  {
+    let drw=this.drawObject;
+    ctx.beginPath();
+    ctx.arc(this.xpos, this.ypos, drw.radius, 0, 2 * Math.PI);
+    if (drw.color=="red")
+    {
+      ctx.fillStyle=drw.color;
+      ctx.fill();
+    }
+    ctx.stroke();
   }
   Move(distance)
   {

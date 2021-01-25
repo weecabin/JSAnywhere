@@ -2,7 +2,7 @@ $(function() {
   console.log('Play');
 });
 
-let circleRadius=15;
+let circleRadius=10;
 function setup()
 {
 debugMode=true;
@@ -84,10 +84,11 @@ function Animate(start)
   if (get("oneball").checked)
   {
     Objs=[];
-    Objs.push(new MovingVector(0,-speed/4,200,600));
+    let drobj={type:"circle",radius:circleRadius,color:"black"};
+    Objs.push(new MovingVector(0,-speed/4,200,600,drobj));
     let qx = 200+Number(get("offset").value);
-    let q = new MovingVector(0,speed,qx,400);
-    q.color="red";
+    let q = new MovingVector(0,speed,qx,400,drobj);
+    q.drawObject.color="red";
     Objs.push(q);
   }
   else if (get("pool").checked) 
@@ -95,32 +96,34 @@ function Animate(start)
     let cr=circleRadius;
     let cd=cr*2;
     let dy=cd*Math.cos(30*Math.PI/180);
-    
+    let drobj={type:"circle",radius:circleRadius,color:"black"};
     Objs=[];
     let qx = 200+Number(get("offset").value);
-    let q = new MovingVector(0,speed,qx,500);
-    q.color="red";
+    let q = new MovingVector(0,speed,qx,500,
+            {type:"circle",radius:circleRadius,color:"red"});
     Objs.push(q);
-    Objs.push(new MovingVector(0,0,200,600));
+    Objs.push(new MovingVector(0,0,200,600,drobj));
 
-    Objs.push(new MovingVector(0,0,200+cr,600+dy));
-    Objs.push(new MovingVector(0,0,200-cr,600+dy));
+    Objs.push(new MovingVector(0,0,200+cr,600+dy,drobj));
+    Objs.push(new MovingVector(0,0,200-cr,600+dy,drobj));
 
-    Objs.push(new MovingVector(0,0,200-cd,600+2*dy));
-    Objs.push(new MovingVector(0,0,200,600+2*dy));
-    Objs.push(new MovingVector(0,0,200+cd,600+2*dy)); 
+    Objs.push(new MovingVector(0,0,200-cd,600+2*dy,drobj));
+    Objs.push(new MovingVector(0,0,200,600+2*dy,drobj));
+    Objs.push(new MovingVector(0,0,200+cd,600+2*dy,drobj));
 
-    Objs.push(new MovingVector(0,0,200+cr,600+3*dy));
-    Objs.push(new MovingVector(0,0,200-cr,600+3*dy));
+    Objs.push(new MovingVector(0,0,200+cr,600+3*dy,drobj));
+    Objs.push(new MovingVector(0,0,200-cr,600+3*dy,drobj));
 
-    Objs.push(new MovingVector(0,0,200,600+4*dy));
+    Objs.push(new MovingVector(0,0,200,600+4*dy,drobj));
     
   }
   else
   {
-    let movingVector = new MovingVector(speed,speed,-circleRadius,-circleRadius);
-    if (Objs.length==0)movingVector.color="red";
+    let movingVector = 
+      new MovingVector(speed,speed,0,0,{type:"circle",radius:circleRadius,color:"black"});
+    if (Objs.length==0)movingVector.drawObject.color="red";
     Objs.push(movingVector);
+    AddStatus(Objs[Objs.length-1].drawObject.color);
     get("info").innerHTML="Objects: "+Objs.length;
     if (Objs.length>1)return;
   }
@@ -198,7 +201,10 @@ function Animate(start)
         DrawPath([[dragmv.xpos,dragmv.ypos],dragto]);
       for (let mv of Objs)
       {
-        drawItem(mv.xpos,mv.ypos,mv.color);
+        if (mv.drawObject.type=="circle")
+          mv.Draw(ctx);
+        else
+          drawItem(mv.xpos,mv.ypos,mv.color);
       }
     }
   }
@@ -253,10 +259,10 @@ function DrawMovingVector(mv)
   {
     case "Circle":
     ctx.beginPath();
-    ctx.arc(mv.xpos, mv.ypos, mv.radius, 0, 2 * Math.PI);
-    if (color=="red")
+    ctx.arc(mv.xpos, mv.ypos, mv.drawObject.radius, 0, 2 * Math.PI);
+    if (mv.drawObject.color=="red")
     {
-      ctx.fillStyle=mv.color;
+      ctx.fillStyle=mv.drawObject.color;
       ctx.fill();
     }
     ctx.stroke();
