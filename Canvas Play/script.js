@@ -215,7 +215,10 @@ try
 
       Clear()
       if (dragmv!=undefined)
+      {
         DrawPath([[dragmv.xpos,dragmv.ypos],dragto]);
+        AddStatus(dragmv.xpos+","+dragmv.ypos);
+      }
       for (let mv of Objs)
       {
         if (mv.drawObject.type=="circle")
