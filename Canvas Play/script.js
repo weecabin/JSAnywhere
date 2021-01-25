@@ -2,22 +2,32 @@ $(function() {
   console.log('Play');
 });
 
+var canvas;
+var ctx;
+
 var circleRadius=10;
+var dragmv;
+var dragto=[];
+var Objs=[];
+
+var runAnimate=false;
+
 function setup()
 {
-debugMode=true;
-let canvasdiv = document.getElementById("canvasdiv"); 
-canvas = document.getElementById("canvas");
-ctx = canvas.getContext("2d");
+  debugMode=true;
+  let canvasdiv = document.getElementById("canvasdiv"); 
+  canvas = document.getElementById("canvas");
+  ctx = canvas.getContext("2d");
 
-canvas.width=400;
-canvas.height=800;
+  canvas.width=400;
+  canvas.height=800;
 
-this.ctx.translate(0,this.canvas.height)
-this.ctx.scale(1,-1);
+  this.ctx.translate(0,this.canvas.height)
+  this.ctx.scale(1,-1);
 
-Objs=[];
-AddStatus("Objs.length="+ Objs.length);
+  dragto=[];
+  runAnimate=false;
+  Objs=[];
 }
 
 function MouseDown(event)
@@ -61,10 +71,7 @@ function MouseUp(event)
   dragmv=undefined;
 }
 
-var dragmv;
-var dragto=[];
-var runAnimate=false;
-var Objs=[];
+
 function Animate(start)
 {
 try
@@ -129,14 +136,9 @@ try
     AddStatus("in else");
     let movingVector = 
       new MovingVector(speed,speed,0,0,{type:"circle",radius:circleRadius,color:"black"});
-    AddStatus(JSON.stringify(Objs));
-    
     if (Objs.length==0)movingVector.drawObject.color="red";
     Objs.push(movingVector);
-    
-    AddStatus(Objs.length);
     AddStatus(Objs[Objs.length-1].drawObject.color);
-    
     get("info").innerHTML="Objects: "+Objs.length;
     if (Objs.length>1)return;
   }
@@ -268,9 +270,6 @@ function DistBetween(mv1,mv2)
   return dist;
 }
 
-
-var canvas;
-var ctx;
 function DrawMovingVector(mv)
 {
   switch (mv.object.type)
