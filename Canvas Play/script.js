@@ -121,6 +121,7 @@ try
   }
   else
   {
+    AddStatus("in else");
     let movingVector = 
       new MovingVector(speed,speed,0,0,{type:"circle",radius:circleRadius,color:"black"});
     if (Objs.length==0)movingVector.drawObject.color="red";
