@@ -95,13 +95,22 @@ class Vector
   //functions that modify this vector
   SetLength(len)
   {
-    this.x=Math.cos(this.angle)*len;
-    this.y=Math.sin(this.angle)*len;
+    let mult = len/this.GetLength();
+    this.x*=mult;
+    this.y*=mult;
   }
   RotateMe(degrees)
   {
-    this.x=this.GetLength()*Math.cos(this.angle);
-    this.y=this.GetLength()*Math.sin(this.angle);
+    //AddStatus("Entering RotateMe("+degrees+")");
+    let cd = this.GetDirection();
+    //AddStatus("current direction="+cd);
+    let len = this.GetLength();
+    //AddStatus("current length="+len)
+    let radiandir = (cd+degrees)*this.toRadian;
+    //AddStatus("radiandir="+radiandir);
+    this.x=len*Math.cos(radiandir);
+    this.y=len*Math.sin(radiandir);
+    //AddStatus("new x,y="+this.x+","+this.y);
   }
   Negate()
   {
@@ -140,7 +149,18 @@ class Vector
 
   Rotate(degrees)
   {
-    return new Vector(this.x,this.y).SetDirection(this.GetDirection()+degrees);
+    //AddStatus("Entering Rotate");
+    //AddStatus("Rotate("+degrees+")");
+    let retVector=new Vector(this.x,this.y);
+    //AddStatus("new Vector(this.x,this.y)="+JSON.stringify(retVector));
+    let thisdir = this.GetDirection();
+    //AddStatus("this direction="+thisdir);
+    let newdir = thisdir+degrees;
+    //AddStatus("new direction="+newdir);
+    retVector.SetDirection(newdir);
+    //AddStatus("retVector.SetDirection(newdir)="+JSON.stringify(retVector));
+    //AddStatus("Exiting Rotate");
+    return retVector;
   }
 
   UnitNormal()
@@ -231,7 +251,17 @@ class MovingVector
     this.xpos=startx;
     this.ypos=starty;
     this.drawObject=drawObject;
+    this.turnTargetDirection=this.turnDeltaAngle=0;
     //AddStatus(JSON.stringify(this.drawObject));
+  }
+  SlewTo(vector)
+  {
+    //AddStatus("Entering SlewTo(vector)");
+    let angleBetween=this.vector.AngleBetween(vector);
+    let slewRate=this.vector.GetLength();
+    this.turnDeltaAngle=(angleBetween>0)?slewRate:-slewRate;
+    this.turnTargetDirection=vector.GetDirection();
+    //AddStatus("Exiting SlewTo(vector)");
   }
   // drawArray = [{move:"line"/"move"/"stroke",dx:1,dy:1}, ...]
   DrawPath(ctx,drawArray,rotate=0)
@@ -318,10 +348,29 @@ class MovingVector
       break;
     }
   }
-  Move(distance)
+  Move()
   {
+    //AddStatus("Entering Move");
+    if (this.turnDeltaAngle!=0)
+    {
+      //AddStatus("this.turnDeltaAngle!=0");
+      let deltaAngle=this.turnTargetDirection-this.vector.GetDirection();
+      if (Math.abs(deltaAngle)<Math.abs(this.turnDeltaAngle))
+      {
+        this.vector=this.vector.ProjectOn(
+                    this.vector.Rotate(deltaAngle));
+        this.turnDeltaAngle=0;
+      }
+      else
+      {
+        let nextVector = this.vector.Rotate(this.turnDeltaAngle);
+        //AddStatus("Next Vector...\n"+JSON.stringify(nextVector));
+        this.vector=this.vector.ProjectOn(nextVector);
+      }
+    }
     this.xpos+=this.vector.x;
     this.ypos+=this.vector.y;
+    //AddStatus("Exiting Move");
   }
   MovingAway(that,debug=false)
   { 

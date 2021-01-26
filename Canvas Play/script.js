@@ -65,11 +65,13 @@ function MouseMove(event)
 }
 function MouseUp(event)
 {
+  //AddStatus("Entering MouseUp")
   let dragVector=new Vector(dragto[0]-dragmv.xpos,dragto[1]-dragmv.ypos).Unit();
   //AddStatus(JSON.stringify(dragVector));
-  dragmv.vector.SetDirection(dragVector.GetDirection());
+  dragmv.SlewTo(dragVector);
   //dragvector.SetLength(dragmv.GetLength());
   dragmv=undefined;
+  //AddStatus("Exiting MouseUp")
 }
 
 
@@ -191,8 +193,9 @@ try
         else if ((testy>(canvas.height-circleRadius)) && (mv.vector.y>0))
           mv.vector.y*=-1;
 
-        mv.xpos+=mv.vector.x;
-        mv.ypos+=mv.vector.y;
+        mv.Move();
+        //mv.xpos+=mv.vector.x;
+        //mv.ypos+=mv.vector.y;
       } 
       // look for collisions
       for (let i=0;get("collisionon").checked &&  i<Objs.length-1;i++)

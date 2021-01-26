@@ -37,7 +37,7 @@ function TestVector()
   AddStatus("v2="+JSON.stringify(v2));
   AddStatus("v1.Normal()="+JSON.stringify(v1n));
   AddStatus("v1.Unit()="+JSON.stringify(v1u));
-  AddStatus("Rotate v2 then print its heading \nand the difference between it and v1");
+  AddStatus("\n\n\nRotate v2 then print its heading \nand the difference between it and v1");
   for (let dir=0;dir<720;dir=dir+45)
   {
     AddStatus("\nv2 Direction="+dir);
@@ -54,6 +54,14 @@ function TestVector()
     AddStatus("v1.GetDirection()="+v1.GetDirection()); 
     AddStatus("v2.GetDirection()="+v2.GetDirection());
     AddStatus("v1.AngleBetween(v2)="+v1.AngleBetween(v2));
+  }
+  AddStatus("now test vector.RotateMe(degrees) and vector.Rotate(degrees), start with");
+  AddStatus(JSON.stringify(v1));
+  for (let i=1;i<36;i++)
+  {
+    AddStatus("v1.Rotate(10)="+JSON.stringify(v1.Rotate(10)));
+    v1.RotateMe(10);
+    AddStatus("v1.RotateMe(10)="+JSON.stringify(v1));
   }
   AddStatus("Exiting TestVector");
 }
