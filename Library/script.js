@@ -231,7 +231,7 @@ class MovingVector
     this.xpos=startx;
     this.ypos=starty;
     this.drawObject=drawObject;
-    AddStatus(JSON.stringify(this.drawObject));
+    //AddStatus(JSON.stringify(this.drawObject));
   }
   // drawArray = [{move:"line"/"move"/"stroke",dx:1,dy:1}, ...]
   DrawPath(ctx,drawArray,rotate=0)

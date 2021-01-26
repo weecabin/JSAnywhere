@@ -156,10 +156,11 @@ try
     get("info").innerHTML="Objects: "+Objs.length;
     if (Objs.length>1)return;
   }
-  AddStatus(JSON.stringify(Objs));
+  //AddStatus(JSON.stringify(Objs));
   var id = setInterval(frame, 5);
   function frame() 
   {
+    if (get("pause").checked)return;
     try
     {
     //AddStatus("in frame, ");
@@ -171,9 +172,9 @@ try
     {
       if (firstPass)
       {
-        AddStatus("canvas.width="+canvas.width);
-        AddStatus("canvas.height="+canvas.height);
-        AddStatus("circleRadius="+circleRadius);
+        //AddStatus("canvas.width="+canvas.width);
+        //AddStatus("canvas.height="+canvas.height);
+        //AddStatus("circleRadius="+circleRadius);
         firstPass=false;
       }
       // bump all positions
@@ -194,7 +195,7 @@ try
         mv.ypos+=mv.vector.y;
       } 
       // look for collisions
-      for (let i=0;i<Objs.length-1;i++)
+      for (let i=0;get("collisionon").checked &&  i<Objs.length-1;i++)
       {
         for (let j=i+1;j<Objs.length;j++)
         {
