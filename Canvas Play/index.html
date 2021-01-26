@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width" />
   <title>Play</title>
   <link rel="stylesheet" href="style.css" />
-  <h1>Play</h1>
+  <h1>Canvas Test 006</h1>
 </head>
 <body onload="setup()">
 
@@ -15,15 +15,19 @@ Your browser does not support the HTML canvas tag.</canvas>
 </div>
 
 <div id="drawitemdiv">
+<input id="showvertices" type="checkbox" checked> Show Vertices<br>
+<input id="collisionon" type="checkbox" checked> Collision Decection<br>
+<input id="pause" type="checkbox">Pause<br>
 <select name="Objects" id="objects">
   <option value="" disabled="disabled" selected="selected">Select an object to draw</option>
   <option value="Circle">Circle</option>
+  <option value="Plane">Plane</option>
   <option value="Rectangle">Rectangle</option>
   <option value="Square">Square</option>
   <option value="Centered X">Centered X</option>
-</select>
-<input id="showvertices" type="checkbox" checked> Show Vertices<br>
-<input id="drawitem" type="button" value="Draw" onclick="drawItem()">
+</select><br>
+
+<input id="drawitem" type="button" value="Random Draw" onclick="drawItem()"><br>
 <input type="button" value="Clear Drawing" onclick="Clear()"><br><br>
 <input type="button" value="Run" onclick="Animate(true)">
 <input type="button" value="Stop" onclick="Animate(false)"><br>

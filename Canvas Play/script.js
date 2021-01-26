@@ -2,20 +2,33 @@ $(function() {
   console.log('Play');
 });
 
-let circleRadius=15;
+var canvas;
+var ctx;
+
+var circleRadius=10;
+var dragmv;
+var dragto=[];
+var Objs=[];
+var firstPass=true;
+var runAnimate=false;
+
 function setup()
 {
-debugMode=true;
-let canvasdiv = document.getElementById("canvasdiv"); 
-canvas = document.getElementById("canvas");
-ctx = canvas.getContext("2d");
+  debugMode=true;
+  let canvasdiv = document.getElementById("canvasdiv"); 
+  canvas = document.getElementById("canvas");
+  ctx = canvas.getContext("2d");
 
-canvas.width=400;
-canvas.height=800;
+  canvas.width=400;
+  canvas.height=800;
+  this.ctx.translate(0,this.canvas.height)
+  this.ctx.scale(1,-1);
 
-this.ctx.translate(0,this.canvas.height)
-this.ctx.scale(1,-1);
-
+  firstPass=true;
+  circleRadius=10;
+  dragto=[];
+  runAnimate=false;
+  Objs=[];
 }
 
 function MouseDown(event)
@@ -53,29 +66,31 @@ function MouseMove(event)
 function MouseUp(event)
 {
   let dragVector=new Vector(dragto[0]-dragmv.xpos,dragto[1]-dragmv.ypos).Unit();
-  AddStatus(JSON.stringify(dragVector));
+  //AddStatus(JSON.stringify(dragVector));
   dragmv.vector.SetDirection(dragVector.GetDirection());
   //dragvector.SetLength(dragmv.GetLength());
   dragmv=undefined;
 }
 
-let dragmv;
-let dragto=[];
-let runAnimate=false;
-let Objs=[];
+
 function Animate(start)
 {
-  AddStatus("in Animate, start = "+start);
+try
+  {
+  //AddStatus("in Animate, start = "+start);
   let speed=Number(get("speed").value/10);
   runAnimate=start;
+  //AddStatus("test start");
   if (!start)
   {
     Objs=[];
     runAnimate=false;
     return;
   }
+  //AddStatus("Set Canvas");
   let x=canvas.width/2;
   let y=canvas.height/4;
+  //AddStatus("about to test drawItem");
   if(drawItem(x,y)==undefined)
   {
     AddStatus("Returning");
@@ -84,10 +99,11 @@ function Animate(start)
   if (get("oneball").checked)
   {
     Objs=[];
-    Objs.push(new MovingVector(0,-speed/4,200,600));
+    let drobj={type:"circle",radius:circleRadius,color:"black"};
+    Objs.push(new MovingVector(0,-speed/4,200,600,drobj));
     let qx = 200+Number(get("offset").value);
-    let q = new MovingVector(0,speed,qx,400);
-    q.color="red";
+    let q = new MovingVector(0,speed,qx,400,drobj);
+    q.drawObject.color="red";
     Objs.push(q);
   }
   else if (get("pool").checked) 
@@ -95,39 +111,58 @@ function Animate(start)
     let cr=circleRadius;
     let cd=cr*2;
     let dy=cd*Math.cos(30*Math.PI/180);
-    
+    let circ={type:"circle",radius:circleRadius,color:"black"};
     Objs=[];
     let qx = 200+Number(get("offset").value);
-    let q = new MovingVector(0,speed,qx,500);
-    q.color="red";
+    let q = new MovingVector(0,speed,qx,500,
+            {type:"circle",radius:circleRadius,color:"red"});
     Objs.push(q);
-    Objs.push(new MovingVector(0,0,200,600));
+    Objs.push(new MovingVector(0,0,200,600,circ));
 
-    Objs.push(new MovingVector(0,0,200+cr,600+dy));
-    Objs.push(new MovingVector(0,0,200-cr,600+dy));
+    Objs.push(new MovingVector(0,0,200+cr,600+dy,circ));
+    Objs.push(new MovingVector(0,0,200-cr,600+dy,circ));
 
-    Objs.push(new MovingVector(0,0,200-cd,600+2*dy));
-    Objs.push(new MovingVector(0,0,200,600+2*dy));
-    Objs.push(new MovingVector(0,0,200+cd,600+2*dy)); 
+    Objs.push(new MovingVector(0,0,200-cd,600+2*dy,circ));
+    Objs.push(new MovingVector(0,0,200,600+2*dy,circ));
+    Objs.push(new MovingVector(0,0,200+cd,600+2*dy,circ));
 
-    Objs.push(new MovingVector(0,0,200+cr,600+3*dy));
-    Objs.push(new MovingVector(0,0,200-cr,600+3*dy));
+    Objs.push(new MovingVector(0,0,200+cr,600+3*dy,circ));
+    Objs.push(new MovingVector(0,0,200-cr,600+3*dy,circ));
 
-    Objs.push(new MovingVector(0,0,200,600+4*dy));
+    Objs.push(new MovingVector(0,0,200,600+4*dy,circ));
     
   }
   else
   {
-    let movingVector = new MovingVector(speed,speed,-circleRadius,-circleRadius);
-    if (Objs.length==0)movingVector.color="red";
+    let sel=get("objects");
+    if (sel.value.length==0)
+    {
+      window.alert("Select something!")
+      return;
+    }
+    let blackball={type:"circle",radius:circleRadius,color:"black"};
+    let blacksquare={type:"square",sidelen:circleRadius*2,color:"black"};
+    let plane={type:"plane",length:20,width:15,color:"black"};
+    let drawobj=blackball;
+    if (sel.value=="Square")
+      drawobj=blacksquare;
+    else if (sel.value=="Plane")
+      drawobj=plane;
+    let movingVector = 
+      new MovingVector(speed,speed,0,0,drawobj);
+    if (Objs.length==0)movingVector.drawObject.color="red";
     Objs.push(movingVector);
+    //AddStatus(Objs[Objs.length-1].drawObject.color);
     get("info").innerHTML="Objects: "+Objs.length;
     if (Objs.length>1)return;
   }
-  AddStatus(JSON.stringify(Objs));
-  var id = setInterval(frame, 5); 
+  //AddStatus(JSON.stringify(Objs));
+  var id = setInterval(frame, 5);
   function frame() 
   {
+    if (get("pause").checked)return;
+    try
+    {
     //AddStatus("in frame, ");
     if (!runAnimate) 
     {
@@ -135,6 +170,13 @@ function Animate(start)
     } 
     else 
     {
+      if (firstPass)
+      {
+        //AddStatus("canvas.width="+canvas.width);
+        //AddStatus("canvas.height="+canvas.height);
+        //AddStatus("circleRadius="+circleRadius);
+        firstPass=false;
+      }
       // bump all positions
       for (let mv of Objs)
       {
@@ -153,7 +195,7 @@ function Animate(start)
         mv.ypos+=mv.vector.y;
       } 
       // look for collisions
-      for (let i=0;i<Objs.length-1;i++)
+      for (let i=0;get("collisionon").checked &&  i<Objs.length-1;i++)
       {
         for (let j=i+1;j<Objs.length;j++)
         {
@@ -195,12 +237,30 @@ function Animate(start)
 
       Clear()
       if (dragmv!=undefined)
+      {
         DrawPath([[dragmv.xpos,dragmv.ypos],dragto]);
+        //AddStatus(dragmv.xpos+","+dragmv.ypos);
+      }
       for (let mv of Objs)
       {
-        drawItem(mv.xpos,mv.ypos,mv.color);
+        if (mv.drawObject.type=="circle" || 
+            mv.drawObject.type=="square" ||
+            mv.drawObject.type=="plane")
+          mv.Draw(ctx);
+        else
+          drawItem(mv.xpos,mv.ypos,mv.color);
       }
     }
+    }
+    catch(err)
+    {
+      AddStatus(err.message);
+    }
+  }
+  }
+  catch(err)
+  {
+    AddStatus(err.message);
   }
 }
 function CollisionBounce(mv1,mv2)
@@ -244,19 +304,16 @@ function DistBetween(mv1,mv2)
   return dist;
 }
 
-
-var canvas;
-var ctx;
 function DrawMovingVector(mv)
 {
   switch (mv.object.type)
   {
     case "Circle":
     ctx.beginPath();
-    ctx.arc(mv.xpos, mv.ypos, mv.radius, 0, 2 * Math.PI);
-    if (color=="red")
+    ctx.arc(mv.xpos, mv.ypos, mv.drawObject.radius, 0, 2 * Math.PI);
+    if (mv.drawObject.color=="red")
     {
-      ctx.fillStyle=mv.color;
+      ctx.fillStyle=mv.drawObject.color;
       ctx.fill();
     }
     ctx.stroke();
@@ -267,7 +324,7 @@ function DrawMovingVector(mv)
 function drawItem(x,y,color="black")
 {
   //AddStatus(color);
-  let sel=document.getElementById("objects");
+  let sel=get("objects");
   if (sel.value.length==0)
   {
     window.alert("Select something!")
@@ -276,8 +333,8 @@ function drawItem(x,y,color="black")
   //console.log(sel.value);
   if (x==undefined)
   {
-    x = Math.floor(Math.random() * circleRadius-10);
-    y = Math.floor(Math.random() * circleRadius-10);
+    x = Math.floor(Math.random() * canvas.width);
+    y = Math.floor(Math.random() * canvas.height);
   }
   //console.log(x+","+y);
   switch (sel.value)
