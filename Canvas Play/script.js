@@ -117,19 +117,19 @@ try
     let q = new MovingVector(0,speed,qx,500,
             {type:"circle",radius:circleRadius,color:"red"});
     Objs.push(q);
-    Objs.push(new MovingVector(0,0,200,600,drobj));
+    Objs.push(new MovingVector(0,0,200,600,circ));
 
-    Objs.push(new MovingVector(0,0,200+cr,600+dy,drobj));
-    Objs.push(new MovingVector(0,0,200-cr,600+dy,drobj));
+    Objs.push(new MovingVector(0,0,200+cr,600+dy,circ));
+    Objs.push(new MovingVector(0,0,200-cr,600+dy,circ));
 
-    Objs.push(new MovingVector(0,0,200-cd,600+2*dy,drobj));
-    Objs.push(new MovingVector(0,0,200,600+2*dy,drobj));
-    Objs.push(new MovingVector(0,0,200+cd,600+2*dy,drobj));
+    Objs.push(new MovingVector(0,0,200-cd,600+2*dy,circ));
+    Objs.push(new MovingVector(0,0,200,600+2*dy,circ));
+    Objs.push(new MovingVector(0,0,200+cd,600+2*dy,circ));
 
-    Objs.push(new MovingVector(0,0,200+cr,600+3*dy,drobj));
-    Objs.push(new MovingVector(0,0,200-cr,600+3*dy,drobj));
+    Objs.push(new MovingVector(0,0,200+cr,600+3*dy,circ));
+    Objs.push(new MovingVector(0,0,200-cr,600+3*dy,circ));
 
-    Objs.push(new MovingVector(0,0,200,600+4*dy,drobj));
+    Objs.push(new MovingVector(0,0,200,600+4*dy,circ));
     
   }
   else
