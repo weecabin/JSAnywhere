@@ -220,17 +220,44 @@ Parameters
 Return Value
 
 *************************************************************/ 
-const defaultObj={type:"circle",radius:15,color:"black"};
+const circleObj={type:"circle",radius:15,color:"black"};
 const squareObj={type:"square",sidelen:15,color:"black"};
+const planeObj={type:"plane",length:20,width:15,color:"black"};
 class MovingVector
 {
-  constructor(xlen,ylen,startx,starty,drawObject=defaultObj)
+  constructor(xlen,ylen,startx,starty,drawObject=circleObj)
   {
     this.vector= new Vector(xlen,ylen);
     this.xpos=startx;
     this.ypos=starty;
     this.drawObject=drawObject;
     AddStatus(JSON.stringify(this.drawObject));
+  }
+  // drawArray = [{move:"line"/"move"/"stroke",dx:1,dy:1}, ...]
+  DrawPath(ctx,x0,y0,drawArray)
+  {
+    let firstMove=true
+    for (let da of drawArray)
+    {
+      switch (da.move)
+      {
+      case "move":
+      if (firstMove)
+      {
+        //AddStatus(JSON.stringify(drawArray));
+        firstMove=false;
+      }
+      else
+        ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x0+da.dx,y0+da.dy);
+      break;
+      case "line":
+      ctx.lineTo(x0+da.dx,y0+da.dy);
+      break;
+      }
+    }
+    ctx.stroke();
   }
   Draw(ctx)
   {
@@ -241,26 +268,44 @@ class MovingVector
       //{type:"circle",radius:15,color:"black"};
       ctx.beginPath();
       ctx.arc(this.xpos, this.ypos, drw.radius, 0, 2 * Math.PI);
+      if (drw.color=="red")
+      {
+        ctx.fillStyle=drw.color;
+        ctx.fill();
+      }
+      ctx.stroke();
       break;
 
       case "square":
       //{type:"square",sidelen:15,color:"black"};
-      ctx.beginPath();
-      let x0=this.xpos-drw.sidelen/2;
-      let y0=this.ypos-drw.sidelen/2;
-      ctx.moveTo(x0,y0);
-      ctx.lineTo(x0+drw.sidelen,y0);
-      ctx.lineTo(x0+drw.sidelen,y0+drw.sidelen);
-      ctx.lineTo(x0,y0+drw.sidelen);
-      ctx.lineTo(x0,y0);
+      var ma = 
+      [
+      {move:"move",dx:0,dy:0},
+      {move:"line",dx:drw.sidelen,dy:0},
+      {move:"line",dx:drw.sidelen,dy:drw.sidelen},
+      {move:"line",dx:0,dy:drw.sidelen},
+      {move:"line",dx:0,dy:0},
+      ];
+      this.DrawPath(ctx,this.xpos-drw.sidelen/2,this.ypos-drw.sidelen/2,ma);
+      if (drw.color=="red")
+      {
+        ctx.fillStyle=drw.color;
+        ctx.fill();
+      }
+      break;
+
+      case "plane":
+      var ma = 
+      [
+      {move:"move",dx:drw.width/2,dy:0},
+      {move:"line",dx:drw.width/2,dy:drw.length},
+      {move:"line",dx:0          ,dy:drw.length/2},
+      {move:"move",dx:drw.width/2,dy:drw.length},
+      {move:"line",dx:drw.width  ,dy:drw.length/2},
+      ];
+      this.DrawPath(ctx,this.xpos-drw.width/2,this.ypos-drw.length/2,ma);
       break;
     }
-    if (drw.color=="red")
-    {
-      ctx.fillStyle=drw.color;
-      ctx.fill();
-    }
-    ctx.stroke();
   }
   Move(distance)
   {
@@ -293,10 +338,11 @@ class MovingVector
       AddStatus("initial dist = "+dist);
       AddStatus("next dist = "+nextdist);
     }
-
     return nextdist>dist;
   }
 }
+
+
 /*************************************************************
 **************************************************************
 Class Name:           MyTable

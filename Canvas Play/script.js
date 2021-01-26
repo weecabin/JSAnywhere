@@ -142,9 +142,12 @@ try
     }
     let blackball={type:"circle",radius:circleRadius,color:"black"};
     let blacksquare={type:"square",sidelen:circleRadius*2,color:"black"};
+    let plane={type:"plane",length:20,width:15,color:"black"};
     let drawobj=blackball;
     if (sel.value=="Square")
       drawobj=blacksquare;
+    else if (sel.value=="Plane")
+      drawobj=plane;
     let movingVector = 
       new MovingVector(speed,speed,0,0,drawobj);
     if (Objs.length==0)movingVector.drawObject.color="red";
@@ -239,7 +242,9 @@ try
       }
       for (let mv of Objs)
       {
-        if (mv.drawObject.type=="circle" || mv.drawObject.type=="square")
+        if (mv.drawObject.type=="circle" || 
+            mv.drawObject.type=="square" ||
+            mv.drawObject.type=="plane")
           mv.Draw(ctx);
         else
           drawItem(mv.xpos,mv.ypos,mv.color);
