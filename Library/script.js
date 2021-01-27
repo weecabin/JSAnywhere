@@ -93,6 +93,13 @@ class Vector
     this.toRadian=Math.PI/180;
   }
   //functions that modify this vector
+  
+  ScaleMe(multiplier)
+  {
+    this.x*=multiplier;
+    this.y*=multiplier;
+  }
+
   SetLength(len)
   {
     let mult = len/this.GetLength();
@@ -240,9 +247,9 @@ Parameters
 Return Value
 
 *************************************************************/ 
-const circleObj={type:"circle",radius:15,color:"black"};
-const squareObj={type:"square",sidelen:15,color:"black"};
-const planeObj={type:"plane",length:20,width:15,color:"black"};
+const circleObj={type:"circle",radius:15,color:"black",friction:1};
+const squareObj={type:"square",sidelen:15,color:"black",friction:1};
+const planeObj={type:"plane",length:20,width:15,color:"black",friction:1};
 class MovingVector
 {
   constructor(xlen,ylen,startx,starty,drawObject=circleObj)
@@ -350,6 +357,10 @@ class MovingVector
   }
   Move()
   {
+    try
+    {
+    if (this.drawObject.friction!=1)
+      this.vector.ScaleMe(this.drawObject.friction);
     //AddStatus("Entering Move");
     if (this.turnDeltaAngle!=0)
     {
@@ -371,6 +382,11 @@ class MovingVector
     this.xpos+=this.vector.x;
     this.ypos+=this.vector.y;
     //AddStatus("Exiting Move");
+    }
+    catch(err)
+    {
+      AddStatus(err);
+    }
   }
   MovingAway(that,debug=false)
   { 

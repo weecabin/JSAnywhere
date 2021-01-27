@@ -56,7 +56,7 @@ function CanvasSize()
   try
   {
     if(++sizeIndex>=sizeOptions.length)sizeIndex=0;
-    AddStatus("CanvasSize "+JSON.stringify(sizeOptions[sizeIndex]));
+    //AddStatus("CanvasSize "+JSON.stringify(sizeOptions[sizeIndex]));
     SetSize(sizeOptions[sizeIndex].width,sizeOptions[sizeIndex].height);
   }
   catch(err)
@@ -121,8 +121,12 @@ function MouseUp(event)
     dragVector.SetDirection(heading);
   }
 
-  AddStatus("heading = "+dragVector.GetDirection());
-  dragmv.SlewTo(dragVector);
+  if (get("slewheading").checked)
+    dragmv.SlewTo(dragVector);
+  else
+    dragmv.vector.SetDirection(dragVector.GetDirection());
+  //AddStatus("heading = "+dragVector.GetDirection());
+  
   dragmv=undefined;
 }
 
@@ -131,6 +135,7 @@ function Animate(start)
 {
 try
   {
+  let friction = get("friction").value;
   //AddStatus("in Animate, start = "+start);
   let speed=Number(get("speed").value/10);
   runAnimate=start;
@@ -153,7 +158,7 @@ try
   if (get("oneball").checked)
   {
     Objs=[];
-    let drobj={type:"circle",radius:circleRadius,color:"black"};
+    let drobj={type:"circle",radius:circleRadius,color:"black",friction:friction};
     Objs.push(new MovingVector(0,-speed/4,canvas.width/2,canvas.height*.8,drobj));
     let qx = canvas.width/2+Number(get("offset").value);
     let q = new MovingVector(0,speed,qx,canvas.height*.5,drobj);
@@ -165,13 +170,13 @@ try
     let cr=circleRadius;
     let cd=cr*2;
     let dy=cd*Math.cos(30*Math.PI/180);
-    let circ={type:"circle",radius:circleRadius,color:"black"};
+    let circ={type:"circle",radius:circleRadius,color:"black",friction:friction};
     Objs=[];
     let x0 = canvas.width/2;
     let qx = x0+Number(get("offset").value);
     let qy = canvas.height*.2;
     let q = new MovingVector(0,speed,qx,qy,
-            {type:"circle",radius:circleRadius,color:"red"});
+            {type:"circle",radius:circleRadius,color:"red",friction:friction});
     Objs.push(q);
     let racky = canvas.height*.75;
     Objs.push(new MovingVector(0,0,x0,racky,circ));
@@ -197,9 +202,9 @@ try
       window.alert("Select something!")
       return;
     }
-    let blackball={type:"circle",radius:circleRadius,color:"black"};
-    let blacksquare={type:"square",sidelen:circleRadius*2,color:"black"};
-    let plane={type:"plane",length:20,width:15,color:"black"};
+    let blackball={type:"circle",radius:circleRadius,color:"black",friction:friction};
+    let blacksquare={type:"square",sidelen:circleRadius*2,color:"black",friction:friction};
+    let plane={type:"plane",length:20,width:15,color:"black",friction:friction};
     let drawobj=blackball;
     if (sel.value=="Square")
       drawobj=blacksquare;
