@@ -247,9 +247,9 @@ Parameters
 Return Value
 
 *************************************************************/ 
-const circleObj={type:"circle",radius:15,color:"black",friction:1};
-const squareObj={type:"square",sidelen:15,color:"black",friction:1};
-const planeObj={type:"plane",length:20,width:15,color:"black",friction:1};
+const circleObj={type:"circle",radius:15,color:"black",drag:0,gravity:0};
+const squareObj={type:"square",sidelen:15,color:"black",drag:0,gravity:0};
+const planeObj={type:"plane",length:20,width:15,color:"black",drag:0,gravity:0};
 class MovingVector
 {
   constructor(xlen,ylen,startx,starty,drawObject=circleObj)
@@ -359,8 +359,15 @@ class MovingVector
   {
     try
     {
-    if (this.drawObject.friction!=1)
-      this.vector.ScaleMe(this.drawObject.friction);
+    if (this.drawObject.drag!=0)
+    {
+      this.vector.ScaleMe(1-this.drawObject.drag);
+    }
+    if (this.drawObject.gravity!=0)
+    { 
+      this.vector.y-=this.drawObject.gravity; 
+    }
+      
     //AddStatus("Entering Move");
     if (this.turnDeltaAngle!=0)
     {

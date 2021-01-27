@@ -4,23 +4,15 @@ $(function() {
 
 var canvas;
 var ctx;
-
 var circleRadius=10;
 var dragmv;
 var dragto=[];
 var Objs=[];
 var firstPass=true;
 var runAnimate=false;
-var sizeOptions=
-[
-  {width:800,height:600},
-  {width:600,height:600},
-  {width:400,height:400},
-  {width:400,height:600},
-  {width:400,height:800}
-];
+var sizeOptions;
 var sizeIndex=0;
-
+var frameInterval=5;
 function setup()
 {
   debugMode=true;
@@ -45,6 +37,7 @@ function setup()
   Objs=[];
   if (get("drawgrid").checked)DrawGrid();
   if (get("drawrunway").checked)DrawRunway();
+  frameInterval=5;
 }
 
 function SetSize(width,height)
@@ -58,8 +51,6 @@ function SetSize(width,height)
   this.ctx.scale(1,-1);
 }
 
-
-
 function CanvasSize()
 {
   try
@@ -72,6 +63,28 @@ function CanvasSize()
   {
     AddStatus(err);
   }
+}
+
+function Gravity()
+{
+  AddStatus("Entering Gravity");
+  for (let mv of Objs)
+  {
+    mv.drawObject.gravity=get("gravityon").checked?
+       Number(get("gravity").value*frameInterval/1000):0;
+  }
+  AddStatus("Exiting Gravity");
+}
+
+function Drag()
+{
+  AddStatus("Entering Drag");
+  for (let mv of Objs)
+  {
+    mv.drawObject.drag=get("dragon").checked?
+       get("drag").value*frameInterval/1000:0;
+  }
+  AddStatus("Exiting Drag");
 }
 
 function MouseDown(event)
@@ -144,7 +157,9 @@ function Animate(start)
 {
 try
   {
-  let friction = get("friction").value;
+  let drag = get("dragon").checked?get("drag").value*frameInterval/1000:0;
+  let gravity = get("gravityon").checked?
+                get("gravity").value*frameInterval/1000:0;
   //AddStatus("in Animate, start = "+start);
   let speed=Number(get("speed").value/10);
   runAnimate=start;
@@ -167,7 +182,9 @@ try
   if (get("oneball").checked)
   {
     Objs=[];
-    let drobj={type:"circle",radius:circleRadius,color:"black",friction:friction};
+    let drobj=
+      {type:"circle",radius:circleRadius,color:"black",
+       drag:drag,gravity:gravity};
     Objs.push(new MovingVector(0,-speed/4,canvas.width/2,canvas.height*.8,drobj));
     let qx = canvas.width/2+Number(get("offset").value);
     let q = new MovingVector(0,speed,qx,canvas.height*.5,drobj);
@@ -179,13 +196,15 @@ try
     let cr=circleRadius;
     let cd=cr*2;
     let dy=cd*Math.cos(30*Math.PI/180);
-    let circ={type:"circle",radius:circleRadius,color:"black",friction:friction};
+    let circ={type:"circle",radius:circleRadius,color:"black",
+              drag:drag,gravity:gravity};
     Objs=[];
     let x0 = canvas.width/2;
     let qx = x0+Number(get("offset").value);
     let qy = canvas.height*.2;
     let q = new MovingVector(0,speed,qx,qy,
-            {type:"circle",radius:circleRadius,color:"red",friction:friction});
+            {type:"circle",radius:circleRadius,color:"red",
+             drag:drag,gravity:gravity});
     Objs.push(q);
     let racky = canvas.height*.75;
     Objs.push(new MovingVector(0,0,x0,racky,circ));
@@ -211,9 +230,12 @@ try
       window.alert("Select something!")
       return;
     }
-    let blackball={type:"circle",radius:circleRadius,color:"black",friction:friction};
-    let blacksquare={type:"square",sidelen:circleRadius*2,color:"black",friction:friction};
-    let plane={type:"plane",length:20,width:15,color:"black",friction:friction};
+    let blackball={type:"circle",radius:circleRadius,color:"black",
+                   drag:drag,gravity:gravity};
+    let blacksquare={type:"square",sidelen:circleRadius*2,color:"black",
+                     drag:drag,gravity:gravity};
+    let plane={type:"plane",length:20,width:15,color:"black",
+               drag:drag,gravity:gravity};
     let drawobj=blackball;
     if (sel.value=="Square")
       drawobj=blacksquare;
@@ -228,7 +250,7 @@ try
     if (Objs.length>1)return;
   }
   //AddStatus(JSON.stringify(Objs));
-  var id = setInterval(frame, 5);
+  var id = setInterval(frame, frameInterval);
   function frame() 
   {
     if (get("pause").checked)return;
@@ -253,12 +275,16 @@ try
       {
         let testx=mv.xpos + mv.vector.x;
         let testy=mv.ypos + mv.vector.y;
-        if ((testx<circleRadius) && (mv.vector.x<0))
+
+        if ((testx<circleRadius) && (mv.vector.x<0)) 
           mv.vector.x*=-1;
         else if ((testx>(canvas.width-circleRadius))&&(mv.vector.x>0))
           mv.vector.x*=-1;
         if ((testy<circleRadius) && (mv.vector.y<0))
-          mv.vector.y*=-1;
+          {
+            mv.ypos=circleRadius;
+            mv.vector.y*=-1;
+          }
         else if ((testy>(canvas.height-circleRadius)) && (mv.vector.y>0))
           mv.vector.y*=-1;
 
