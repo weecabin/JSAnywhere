@@ -69,13 +69,31 @@ function MouseMove(event)
 }
 function MouseUp(event)
 {
-  //AddStatus("Entering MouseUp")
-  let dragVector=new Vector(dragto[0]-dragmv.xpos,dragto[1]-dragmv.ypos).Unit();
-  //AddStatus(JSON.stringify(dragVector));
+  let dragVector=new Vector(dragto[0]-dragmv.xpos,dragto[1]-dragmv.ypos);
+  // allow the user to cancel the vector by moving back to the origin
+  if (dragVector.GetLength()<50)
+  {
+    dragmv=undefined;
+    return;
+  }
+
+  if (get("snapheading").checked)
+  {
+    // force headings on 10deg increments
+    let heading = dragVector.GetDirection();
+    if ((heading>355) || (heading<5))
+      heading=0;
+    else
+    {
+      let mult = Math.round(heading/10);
+      heading = mult*10;
+    }
+    dragVector.SetDirection(heading);
+  }
+
+  AddStatus("heading = "+dragVector.GetDirection());
   dragmv.SlewTo(dragVector);
-  //dragvector.SetLength(dragmv.GetLength());
   dragmv=undefined;
-  //AddStatus("Exiting MouseUp")
 }
 
 
