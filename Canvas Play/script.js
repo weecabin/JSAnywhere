@@ -11,11 +11,28 @@ var dragto=[];
 var Objs=[];
 var firstPass=true;
 var runAnimate=false;
+var sizeOptions=
+[
+  {width:800,height:600},
+  {width:600,height:600},
+  {width:400,height:400},
+  {width:400,height:600},
+  {width:400,height:800}
+];
+var sizeIndex=0;
 
 function setup()
 {
   debugMode=true;
-  
+  sizeOptions=
+  [
+    {width:800,height:600},
+    {width:600,height:600},
+    {width:400,height:400},
+    {width:400,height:600},
+    {width:400,height:800}
+  ];
+  sizeIndex=0;
   canvas = document.getElementById("canvas");
   ctx = canvas.getContext("2d");
 
@@ -41,15 +58,7 @@ function SetSize(width,height)
   this.ctx.scale(1,-1);
 }
 
-var sizeOptions=
-[
-  {width:800,height:600},
-  {width:600,height:600},
-  {width:400,height:400},
-  {width:400,height:600},
-  {width:400,height:800}
-];
-var sizeIndex=0;
+
 
 function CanvasSize()
 {
