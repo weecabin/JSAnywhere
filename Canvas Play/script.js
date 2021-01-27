@@ -124,9 +124,9 @@ try
   {
     Objs=[];
     let drobj={type:"circle",radius:circleRadius,color:"black"};
-    Objs.push(new MovingVector(0,-speed/4,200,600,drobj));
-    let qx = 200+Number(get("offset").value);
-    let q = new MovingVector(0,speed,qx,400,drobj);
+    Objs.push(new MovingVector(0,-speed/4,canvas.width/2,canvas.height*.8,drobj));
+    let qx = canvas.width/2+Number(get("offset").value);
+    let q = new MovingVector(0,speed,qx,canvas.height*.5,drobj);
     q.drawObject.color="red";
     Objs.push(q);
   }
@@ -137,23 +137,26 @@ try
     let dy=cd*Math.cos(30*Math.PI/180);
     let circ={type:"circle",radius:circleRadius,color:"black"};
     Objs=[];
-    let qx = 200+Number(get("offset").value);
-    let q = new MovingVector(0,speed,qx,500,
+    let x0 = canvas.width/2;
+    let qx = x0+Number(get("offset").value);
+    let qy = canvas.height*.2;
+    let q = new MovingVector(0,speed,qx,qy,
             {type:"circle",radius:circleRadius,color:"red"});
     Objs.push(q);
-    Objs.push(new MovingVector(0,0,200,600,circ));
+    let racky = canvas.height*.5;
+    Objs.push(new MovingVector(0,0,x0,racky,circ));
 
-    Objs.push(new MovingVector(0,0,200+cr,600+dy,circ));
-    Objs.push(new MovingVector(0,0,200-cr,600+dy,circ));
+    Objs.push(new MovingVector(0,0,x0+cr,racky+dy,circ));
+    Objs.push(new MovingVector(0,0,x0-cr,racky+dy,circ));
 
-    Objs.push(new MovingVector(0,0,200-cd,600+2*dy,circ));
-    Objs.push(new MovingVector(0,0,200,600+2*dy,circ));
-    Objs.push(new MovingVector(0,0,200+cd,600+2*dy,circ));
+    Objs.push(new MovingVector(0,0,x0-cd,racky+2*dy,circ));
+    Objs.push(new MovingVector(0,0,x0,racky+2*dy,circ));
+    Objs.push(new MovingVector(0,0,x0+cd,racky+2*dy,circ));
 
-    Objs.push(new MovingVector(0,0,200+cr,600+3*dy,circ));
-    Objs.push(new MovingVector(0,0,200-cr,600+3*dy,circ));
+    Objs.push(new MovingVector(0,0,x0+cr,racky+3*dy,circ));
+    Objs.push(new MovingVector(0,0,x0-cr,racky+3*dy,circ));
 
-    Objs.push(new MovingVector(0,0,200,600+4*dy,circ));
+    Objs.push(new MovingVector(0,0,x0,racky+4*dy,circ));
     
   }
   else
