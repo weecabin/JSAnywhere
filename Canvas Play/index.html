@@ -9,8 +9,8 @@
 </head>
 <body onload="setup()">
 
-<div id="canvasdiv" width="400px" height="400px">
-<canvas id="canvas" width="400" height="400" ontouchstart="MouseDown()" ontouchend="MouseUp()" ontouchmove="MouseMove(event)">
+<div id="canvasdiv">
+<canvas id="canvas" ontouchstart="MouseDown()" ontouchend="MouseUp()" ontouchmove="MouseMove(event)">
 Your browser does not support the HTML canvas tag.</canvas>
 </div>
 
@@ -32,7 +32,8 @@ Your browser does not support the HTML canvas tag.</canvas>
 <input id="drawitem" type="button" value="Random Draw" onclick="drawItem()"><br>
 <input type="button" value="Clear Drawing" onclick="Clear()"><br><br>
 <input type="button" value="Run" onclick="Animate(true)">
-<input type="button" value="Stop" onclick="Animate(false)"><br>
+<input type="button" value="Stop" onclick="Animate(false)">
+<input type="button" value="Aspect" onclick="CanvasSize()"><br>
 Random<input type="radio" id="random" name="option" checked>
 Pool<input type="radio" id="pool" name="option">
 One Ball<input type="radio" id="oneball" name="option"><br>

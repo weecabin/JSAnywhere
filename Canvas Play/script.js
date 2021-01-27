@@ -15,16 +15,11 @@ var runAnimate=false;
 function setup()
 {
   debugMode=true;
-  let canvasdiv = document.getElementById("canvasdiv"); 
+  
   canvas = document.getElementById("canvas");
   ctx = canvas.getContext("2d");
 
-  canvasdiv.width=800;
-  canvasdiv.height=600;
-  canvas.width=800;
-  canvas.height=600;
-  this.ctx.translate(0,this.canvas.height)
-  this.ctx.scale(1,-1);
+  SetSize(800,600);
 
   firstPass=true;
   circleRadius=10;
@@ -33,6 +28,41 @@ function setup()
   Objs=[];
   if (get("drawgrid").checked)DrawGrid();
   if (get("drawrunway").checked)DrawRunway();
+}
+
+function SetSize(width,height)
+{
+  let canvasdiv = get("canvasdiv"); 
+  canvasdiv.width=width;
+  canvasdiv.height=height;
+  canvas.width=width;
+  canvas.height=height;
+  this.ctx.translate(0,this.canvas.height)
+  this.ctx.scale(1,-1);
+}
+
+var sizeOptions=
+[
+  {width:800,height:600},
+  {width:600,height:600},
+  {width:400,height:400},
+  {width:400,height:600},
+  {width:400,height:800}
+];
+var sizeIndex=0;
+
+function CanvasSize()
+{
+  try
+  {
+    if(++sizeIndex>=sizeOptions.length)sizeIndex=0;
+    AddStatus("CanvasSize "+JSON.stringify(sizeOptions[sizeIndex]));
+    SetSize(sizeOptions[sizeIndex].width,sizeOptions[sizeIndex].height);
+  }
+  catch(err)
+  {
+    AddStatus(err);
+  }
 }
 
 function MouseDown(event)
@@ -143,7 +173,7 @@ try
     let q = new MovingVector(0,speed,qx,qy,
             {type:"circle",radius:circleRadius,color:"red"});
     Objs.push(q);
-    let racky = canvas.height*.5;
+    let racky = canvas.height*.75;
     Objs.push(new MovingVector(0,0,x0,racky,circ));
 
     Objs.push(new MovingVector(0,0,x0+cr,racky+dy,circ));
