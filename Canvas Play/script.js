@@ -19,8 +19,10 @@ function setup()
   canvas = document.getElementById("canvas");
   ctx = canvas.getContext("2d");
 
-  canvas.width=400;
-  canvas.height=800;
+  canvasdiv.width=800;
+  canvasdiv.height=600;
+  canvas.width=800;
+  canvas.height=600;
   this.ctx.translate(0,this.canvas.height)
   this.ctx.scale(1,-1);
 
@@ -29,6 +31,8 @@ function setup()
   dragto=[];
   runAnimate=false;
   Objs=[];
+  if (get("drawgrid").checked)DrawGrid();
+  if (get("drawrunway").checked)DrawRunway();
 }
 
 function MouseDown(event)
@@ -253,6 +257,8 @@ try
         else
           drawItem(mv.xpos,mv.ypos,mv.color);
       }
+      if (get("drawgrid").checked)DrawGrid();
+      if (get("drawrunway").checked)DrawRunway();
     }
     }
     catch(err)
@@ -307,23 +313,6 @@ function DistBetween(mv1,mv2)
   return dist;
 }
 
-function DrawMovingVector(mv)
-{
-  switch (mv.object.type)
-  {
-    case "Circle":
-    ctx.beginPath();
-    ctx.arc(mv.xpos, mv.ypos, mv.drawObject.radius, 0, 2 * Math.PI);
-    if (mv.drawObject.color=="red")
-    {
-      ctx.fillStyle=mv.drawObject.color;
-      ctx.fill();
-    }
-    ctx.stroke();
-    break;
-  } 
-}
-
 function drawItem(x,y,color="black")
 {
   //AddStatus(color);
@@ -342,22 +331,10 @@ function drawItem(x,y,color="black")
   //console.log(x+","+y);
   switch (sel.value)
   {
-    case "Circle":
-    ctx.beginPath();
-    ctx.arc(x, y, circleRadius, 0, 2 * Math.PI);
-    if (color=="red")
-    {
-      ctx.fillStyle=color;
-      ctx.fill();
-    }
-    ctx.stroke();
-    break;
-    case "Square":
-    DrawPath([[x,y],[x+50,y],[x+50,y+50],[x,y+50],[x,y]]);
-    break;
     case "Rectangle":
     DrawPath([[x,y],[x+100,y],[x+100,y+50],[x,y+50],[x,y]]);
     break;
+
     case "Centered X":
     DrawPath([[0,0],[canvas.width,canvas.height]]);
     DrawPath([[0,canvas.height],[canvas.width,0]]);
@@ -366,6 +343,43 @@ function drawItem(x,y,color="black")
   return([x,y]);
 }
 
+function DrawRunway()
+{
+  let rwy=10;
+  let conelen=80;
+  let conewidth=5;
+  let x=canvas.width/2;
+  let y=canvas.height/2;
+  ctx.beginPath();
+  ctx.moveTo(x-rwy,y);
+  ctx.lineTo(x+rwy,y);
+  ctx.lineTo(x+rwy+conelen,y+conewidth);
+  ctx.lineTo(x+rwy+conelen,y-conewidth);
+  ctx.lineTo(x+rwy,y);
+  ctx.moveTo(x-rwy,y);
+  ctx.lineTo(x-rwy-conelen,y+conewidth);
+  ctx.lineTo(x-rwy-conelen,y-conewidth);
+  ctx.lineTo(x-rwy,y);
+  ctx.stroke();
+}
+
+function DrawGrid()
+{
+  ctx.setLineDash([2, 10]);/*dashes are 5px and spaces are 3px*/
+  ctx.beginPath();
+  for (let x=100;x<canvas.width;x+=100)
+  {
+    ctx.moveTo(x,0);
+    ctx.lineTo(x,canvas.height);
+  }
+  for (let y=100;y<canvas.height;y+=100)
+  {
+    ctx.moveTo(0,y);
+    ctx.lineTo(canvas.width,y);
+  }
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
 function DrawPath(points)
 {
   let firstpoint=true;
@@ -399,5 +413,5 @@ function DrawPath(points)
 
 function Clear()
 {
-  ctx.clearRect(0,0,400,800);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
 }

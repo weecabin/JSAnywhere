@@ -9,12 +9,14 @@
 </head>
 <body onload="setup()">
 
-<div id="canvasdiv">
-<canvas id="canvas" width="400" height="800" ontouchstart="MouseDown()" ontouchend="MouseUp()" ontouchmove="MouseMove(event)">
+<div id="canvasdiv" width="400px" height="400px">
+<canvas id="canvas" width="400" height="400" ontouchstart="MouseDown()" ontouchend="MouseUp()" ontouchmove="MouseMove(event)">
 Your browser does not support the HTML canvas tag.</canvas>
 </div>
 
 <div id="drawitemdiv">
+<input id="drawrunway" type="checkbox" checked> Draw Runway<br>
+<input id="drawgrid" type="checkbox" checked> Draw Grid<br>
 <input id="showvertices" type="checkbox" checked> Show Vertices<br>
 <input id="collisionon" type="checkbox" checked> Collision Decection<br>
 <input id="pause" type="checkbox">Pause<br>
