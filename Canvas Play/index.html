@@ -10,7 +10,7 @@
 <body onload="setup()">
 
 <div id="canvasdiv">
-<canvas id="canvas" ontouchstart="MouseDown()" ontouchend="MouseUp()" ontouchmove="MouseMove(event)">
+<canvas id="canvas">
 Your browser does not support the HTML canvas tag.</canvas>
 </div>
 
@@ -37,6 +37,7 @@ Your browser does not support the HTML canvas tag.</canvas>
 <input type="button" value="Clear Drawing" onclick="Clear()"><br><br>
 <input type="button" value="Run" onclick="Animate(true)">
 <input type="button" value="Stop" onclick="Animate(false)">
+<input type="button" value="Zoom" onclick="Zoom()">
 <input type="button" value="Aspect" onclick="CanvasSize()"><br>
 Random<input type="radio" id="random" name="option" checked>
 Pool<input type="radio" id="pool" name="option">
@@ -44,8 +45,8 @@ One Ball<input type="radio" id="oneball" name="option"><br>
 Offset<input id="offset" type="text" size="4" value="0">
 Speed<input id="speed" type="text" size="4" value="3"><br>
 Drag <input id="drag" type="text" size="6" value=".2"> 
-Gravity <input id="gravity" type="text" size="6" value=".2"> 
-<p id="info" value=""/>
+Gravity <input id="gravity" type="text" size="6" value=".2"><br>
+<p id="info" value=""></p>
 </div>
 
 <div class="divider"/>

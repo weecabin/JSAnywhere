@@ -305,7 +305,7 @@ class MovingVector
     }
     ctx.stroke();
   }
-  Draw(ctx)
+  Draw(ctx,zoom=1)
   {
     let drw=this.drawObject;
     switch (drw.type)
@@ -324,7 +324,7 @@ class MovingVector
 
       case "square":
       //{type:"square",sidelen:15,color:"black"};
-      let half = drw.sidelen/2;
+      let half = drw.sidelen/zoom;
       var ma = 
       [
       {move:"move",dx:-half,dy:-half},
@@ -343,13 +343,15 @@ class MovingVector
 
       case "plane":
       let rotate = this.vector.GetDirection();
+      let halflen=(drw.length/2)/zoom;
+      let halfwid=(drw.width/2)/zoom;
       var ma = 
       [
-      {move:"move",dx:-drw.length/2,dy:0},
-      {move:"line",dx:drw.length/2, dy:0},
-      {move:"line",dx:0,            dy:drw.width/2},
-      {move:"move",dx:0,            dy:-drw.width/2},
-      {move:"line",dx:drw.length/2,  dy:0},
+      {move:"move",dx:-halflen,dy:0},
+      {move:"line",dx:halflen, dy:0},
+      {move:"line",dx:0,            dy:halfwid},
+      {move:"move",dx:0,            dy:-halfwid},
+      {move:"line",dx:halflen,  dy:0},
       ];
       this.DrawPath(ctx,ma,-rotate);
       break;

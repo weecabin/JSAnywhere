@@ -4,17 +4,21 @@ $(function() {
 
 var canvas;
 var ctx;
-var circleRadius=10;
+var circleRadius;
 var dragmv;
 var dragto=[];
 var Objs=[];
 var firstPass=true;
 var runAnimate=false;
 var sizeOptions;
-var sizeIndex=0;
-var frameInterval=5;
+var sizeIndex;
+var frameInterval;
+var zoom;
+var minzoom;
 function setup()
 {
+  zoom=1;
+  minzoom=.5;
   debugMode=true;
   sizeOptions=
   [
@@ -37,18 +41,44 @@ function setup()
   Objs=[];
   if (get("drawgrid").checked)DrawGrid();
   if (get("drawrunway").checked)DrawRunway();
-  frameInterval=5;
+  frameInterval=10;
+  canvas.addEventListener('touchstart', TouchStart);
+  canvas.addEventListener('touchmove', TouchMove);
+  canvas.addEventListener('touchend', TouchEnd); 
 }
 
-function SetSize(width,height)
+function SetSize(width,height,scale=1,offsetx=0,offsety=0)
 {
   let canvasdiv = get("canvasdiv"); 
   canvasdiv.width=width;
   canvasdiv.height=height;
   canvas.width=width;
   canvas.height=height;
-  this.ctx.translate(0,this.canvas.height)
-  this.ctx.scale(1,-1);
+  ctx.translate(0-offsetx,this.canvas.height-offsety)
+  ctx.scale(scale,-scale);
+}
+
+function Zoom()
+{
+  try
+  {
+    if (zoom==1)
+    {
+      zoom = .5; 
+      SetSize(sizeOptions[sizeIndex].width,sizeOptions[sizeIndex].height,
+        zoom)
+      AddStatus("canvas w,h="+canvas.width+","+canvas.height);
+    }
+    else
+    {
+      zoom=1;
+      SetSize(sizeOptions[sizeIndex].width,sizeOptions[sizeIndex].height);
+    }
+  }
+  catch(err)
+  {
+    AddStatus(err);
+  }
 }
 
 function CanvasSize()
@@ -87,19 +117,20 @@ function Drag()
   AddStatus("Exiting Drag");
 }
 
-function MouseDown(event)
+function TouchStart(event)
 {
   linePath=[];
 }
-function MouseMove(event)
+function TouchMove(event)
 {
+  if (Objs.length==0)return;
   event.preventDefault();
 
   var rect = canvas.getBoundingClientRect();
   //x position within the element.
-  var x = event.touches[0].clientX + rect.left - 30; 
+  var x = (event.touches[0].clientX + rect.left - 30)/zoom;  
   //y position within the element.
-  var y = canvas.height - event.touches[0].clientY + rect.top;  
+  var y = (canvas.height - event.touches[0].clientY + rect.top)/zoom;  
   
   if (dragmv==undefined)
   {
@@ -119,8 +150,9 @@ function MouseMove(event)
   }
   dragto=[x,y]
 }
-function MouseUp(event)
+function TouchEnd(event)
 {
+  if (Objs.length==0)return;
   let dragVector=new Vector(dragto[0]-dragmv.xpos,dragto[1]-dragmv.ypos);
   // allow the user to cancel the vector by moving back to the origin
   if (dragVector.GetLength()<50)
@@ -185,7 +217,8 @@ try
     let drobj=
       {type:"circle",radius:circleRadius,color:"black",
        drag:drag,gravity:gravity};
-    Objs.push(new MovingVector(0,-speed/4,canvas.width/2,canvas.height*.8,drobj));
+    Objs.push(new MovingVector(0,-speed/4,canvas.width/2
+                               ,canvas.height*.8,drobj));
     let qx = canvas.width/2+Number(get("offset").value);
     let q = new MovingVector(0,speed,qx,canvas.height*.5,drobj);
     q.drawObject.color="red";
@@ -234,7 +267,7 @@ try
                    drag:drag,gravity:gravity};
     let blacksquare={type:"square",sidelen:circleRadius*2,color:"black",
                      drag:drag,gravity:gravity};
-    let plane={type:"plane",length:20,width:15,color:"black",
+    let plane={type:"plane",length:12,width:6,color:"black",
                drag:drag,gravity:gravity};
     let drawobj=blackball;
     if (sel.value=="Square")
@@ -251,8 +284,10 @@ try
   }
   //AddStatus(JSON.stringify(Objs));
   var id = setInterval(frame, frameInterval);
+  var loopcount=0;
   function frame() 
   {
+    get("info").innerHTML=++loopcount;
     if (get("pause").checked)return;
     try
     {
@@ -270,29 +305,30 @@ try
         //AddStatus("circleRadius="+circleRadius);
         firstPass=false;
       }
-      // bump all positions
+      //AddStatus("Bump all positions, check if at canvas edge");
       for (let mv of Objs)
       {
-        let testx=mv.xpos + mv.vector.x;
-        let testy=mv.ypos + mv.vector.y;
+        let testx=(mv.xpos + mv.vector.x)*minzoom;
+        let testy=(mv.ypos + mv.vector.y)*minzoom
 
-        if ((testx<circleRadius) && (mv.vector.x<0)) 
+        if ((testx<circleRadius*minzoom) && (mv.vector.x<0)) 
           mv.vector.x*=-1;
-        else if ((testx>(canvas.width-circleRadius))&&(mv.vector.x>0))
+        else if ((testx>(canvas.width-circleRadius*zoom))&&(mv.vector.x>0))
           mv.vector.x*=-1;
-        if ((testy<circleRadius) && (mv.vector.y<0))
+        if ((testy<circleRadius*minzoom) && (mv.vector.y<0))
           {
             mv.ypos=circleRadius;
             mv.vector.y*=-1;
           }
-        else if ((testy>(canvas.height-circleRadius)) && (mv.vector.y>0))
+        else if ((testy>(canvas.height-circleRadius*zoom)) && (mv.vector.y>0))
           mv.vector.y*=-1;
-
+        
+        //AddStatus("Advance positions");
         mv.Move();
         //mv.xpos+=mv.vector.x;
         //mv.ypos+=mv.vector.y;
       } 
-      // look for collisions
+      //AddStatus("Look for collisions with other objects");
       for (let i=0;get("collisionon").checked &&  i<Objs.length-1;i++)
       {
         for (let j=i+1;j<Objs.length;j++)
@@ -332,7 +368,7 @@ try
           }
         }
       }
-
+      //AddStatus("Clear, then draw everything");
       Clear()
       if (dragmv!=undefined)
       {
@@ -344,7 +380,7 @@ try
         if (mv.drawObject.type=="circle" || 
             mv.drawObject.type=="square" ||
             mv.drawObject.type=="plane")
-          mv.Draw(ctx);
+          mv.Draw(ctx,zoom);
         else
           drawItem(mv.xpos,mv.ypos,mv.color);
       }
@@ -456,17 +492,18 @@ function DrawRunway()
 
 function DrawGrid()
 {
-  ctx.setLineDash([2, 10]);/*dashes are 5px and spaces are 3px*/
+  ctx.setLineDash([2/minzoom, 10/minzoom]);/*dashes are 5px and spaces are 3px*/
+  ctx.lineWidth=1/zoom;
   ctx.beginPath();
   for (let x=100;x<canvas.width;x+=100)
   {
-    ctx.moveTo(x,0);
-    ctx.lineTo(x,canvas.height);
+    ctx.moveTo(x/minzoom,0);
+    ctx.lineTo(x/minzoom,canvas.height/minzoom);
   }
   for (let y=100;y<canvas.height;y+=100)
   {
-    ctx.moveTo(0,y);
-    ctx.lineTo(canvas.width,y);
+    ctx.moveTo(0,y/minzoom);
+    ctx.lineTo(canvas.width/minzoom,y/minzoom);
   }
   ctx.stroke();
   ctx.setLineDash([]);
@@ -504,5 +541,5 @@ function DrawPath(points)
 
 function Clear()
 {
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.clearRect(0,0,canvas.width/zoom,canvas.height/zoom);
 }
