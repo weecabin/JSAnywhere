@@ -20,7 +20,7 @@ Your browser does not support the HTML canvas tag.</canvas>
 <input id="drawrunway" type="checkbox" > Draw Runway<br>
 <input id="drawgrid" type="checkbox" checked> Draw Grid<br>
 <input id="showvertices" type="checkbox" checked> Show Vertices<br>
-<input id="collisionon" type="checkbox" checked> Collision Decection<br>
+<input id="collisionon" type="checkbox" checked> Collision Detection<br>
 <input id="gravityon" type="checkbox" onchange="Gravity()"> Gravity<br>
 <input id="dragon" type="checkbox" onchange="Drag()"> Drag<br>
 <input id="pause" type="checkbox">Pause<br>
@@ -46,13 +46,17 @@ Offset<input id="offset" type="text" size="4" value="0">
 Speed<input id="speed" type="text" size="4" value="3"><br>
 Drag <input id="drag" type="text" size="6" value=".2"> 
 Gravity <input id="gravity" type="text" size="6" value=".2"><br>
-<p id="info" value=""></p>
+<p id="objcount" value=""></p>
+<p id="framecount" value=""></p>
+
 </div>
 
 <div class="divider"/>
 
 <div class="floatleft">
-  Status/Debug...<br>
+  <br>
+  Status/Debug... <input type="button" value="Clear" onclick="ClearStatus()">
+  <br><br>
   <textarea id="status" value="Status..."></textarea>
 </div>
 

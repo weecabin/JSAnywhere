@@ -11,6 +11,122 @@ Return Value
 
 *************************************************************/ 
 
+/*************************************************************
+**************************************************************
+                           class DrawExtents
+
+Description
+
+constructor
+viewLimits={minx:0,miny:0,maxx:400,maxy:400}
+worldOffset={dx:0,dy:0}
+zoom={now:1,min:.1,max:10}
+zoomMax= the maximum zoom allowed.
+
+Return Value
+
+*************************************************************/ 
+
+class DrawViewWorld
+{
+  constructor(viewLimits,worldOffset,zoom)
+  {
+    this.vl=viewLimits;
+    this.wo=worldOffset;
+    this.zoom=zoom;
+    AddStatus("zoom="+JSON.stringify(this.zoom));
+  }
+  SetView(width,height)
+  {
+    AddStatus("new view = "+width+","+height);
+    this.vl.maxx=width;
+    this.vl.maxy=height;
+  }
+
+  SetOffset(x,y)
+  {
+    this.wo={dx:x,dy:y}
+  }
+  
+  AddOffset(x,y)
+  {
+    this.wo.dx+=x;
+    this.wo.dy+=y;
+  }
+
+  SetZoom(zoom)
+  {
+    //AddStatus("in SetZoom("+zoom+")");
+    //AddStatus("zoom="+JSON.stringify(this.zoom));
+    if (zoom<this.zoom.min)
+      this.zoom.now=this.zoom.min;
+    else if (zoom>this.zoom.max)
+      this.zoom.now=this.zoom.max;
+    else
+      this.zoom.now=zoom;
+    //AddStatus("zoom="+JSON.stringify(this.zoom));
+    //AddStatus("exiting SetZoom(zoom)");
+  }
+
+  GetZoom()
+  {
+    return this.zoom.now;
+  }
+
+  GetViewLimits()
+  {
+    return [this.vl.maxx,this.vl.maxy];
+  }
+  GetOffset()
+  {
+    return this.wo;
+  }
+
+  GetAll()
+  {
+    let ret={view:this.vl,offset:this.wo,zoom:this.zoom};
+    return ret;
+  }
+
+  /*
+  viewPoint is an x,y array [x,y]
+  returns an x,y array of the corresponding world point
+  */
+  GetWorldPoint(viewPoint)
+  {
+    let worldx = this.wo.dx + viewPoint[0]/this.zoom.now;
+    let worldy = this.wo.dy + viewPoint[1]/this.zoom.now; 
+    return [worldx,worldy];
+  }
+
+  /*
+  worldPoint is an x,y array [x,y]
+  returns an x,y array of the corresponding view point
+  */
+  GetViewPoint(worldPoint)
+  {
+    let viewx = (worldPoint[0]-this.wo.dx)*this.zoom.now;
+    let viewy = (worldPoint[1]-this.wo.dy)*this.zoom.now;
+    return [viewx,viewy];
+  }
+  GetViewX(worldx)
+  {
+    return (worldx-this.wo.dx)*this.zoom.now;
+  }
+  GetViewY(worldy)
+  {
+    return (worldy-this.wo.dy)*this.zoom.now;
+  }
+  GetWorldX(viewx)
+  {
+    return this.wo.dx + viewx/this.zoom.now;
+  }
+  GetWorldY(viewy)
+  {
+    return this.wo.dy + viewy/this.zoom.now;
+  }
+}
+
 
 /*************************************************************
 **************************************************************
@@ -252,14 +368,24 @@ const squareObj={type:"square",sidelen:15,color:"black",drag:0,gravity:0};
 const planeObj={type:"plane",length:20,width:15,color:"black",drag:0,gravity:0};
 class MovingVector
 {
-  constructor(xlen,ylen,startx,starty,drawObject=circleObj)
+  constructor(xlen,ylen,startx,starty,drawObject=circleObj,view=null)
   {
     this.vector= new Vector(xlen,ylen);
     this.xpos=startx;
     this.ypos=starty;
     this.drawObject=drawObject;
     this.turnTargetDirection=this.turnDeltaAngle=0;
+    this.view=view;
     //AddStatus(JSON.stringify(this.drawObject));
+  }
+  Snapshot()
+  {
+    let ret="MovingVector Snapshot\n"+
+    "vector: "+JSON.stringify(this.vector)+"\n"+
+    "World x,y: "+this.xpos.toFixed(2)+","+this.ypos.toFixed(2)+"\n"+
+    "DrawObj: "+JSON.stringify(this.drawObject)+"\n"+
+    "View: "+JSON.stringify(this.view);
+    return ret;
   }
   SlewTo(vector)
   {
@@ -274,10 +400,11 @@ class MovingVector
   DrawPath(ctx,drawArray,rotate=0)
   {
     let firstMove=true
+    let zoomMult=1+.8*(this.view.GetZoom()-1)
     for (let da of drawArray)
     {
-      let x = this.xpos+da.dx;
-      let y = this.ypos+da.dy;
+      let x;
+      let y;
       //AddStatus("x,y="+x+","+y);
       if (rotate!=0)
       {
@@ -285,8 +412,13 @@ class MovingVector
         let newdx = da.dx*Math.cos(theta)+da.dy*Math.sin(theta);
         let newdy = -da.dx*Math.sin(theta)+da.dy*Math.cos(theta);
         //AddStatus("newdx,newdy="+newdx+","+newdy);
-        x=this.xpos+newdx;
-        y=this.ypos+newdy;
+        x=this.xpos+newdx/zoomMult;
+        y=this.ypos+newdy/zoomMult;
+      }
+      else
+      {
+        x = this.xpos+da.dx/zoomMult;
+        y = this.ypos+da.dy/zoomMult;
       }
       switch (da.move)
       {
@@ -305,15 +437,17 @@ class MovingVector
     }
     ctx.stroke();
   }
-  Draw(ctx,zoom=1)
+  Draw(ctx)
   {
     let drw=this.drawObject;
+    let xpos = this.xpos;
+    let ypos = this.ypos;
     switch (drw.type)
     {
       case "circle":
       //{type:"circle",radius:15,color:"black"};
       ctx.beginPath();
-      ctx.arc(this.xpos, this.ypos, drw.radius, 0, 2 * Math.PI);
+      ctx.arc(xpos, ypos, drw.radius, 0, 2 * Math.PI);
       if (drw.color=="red")
       {
         ctx.fillStyle=drw.color;
@@ -324,7 +458,7 @@ class MovingVector
 
       case "square":
       //{type:"square",sidelen:15,color:"black"};
-      let half = drw.sidelen/zoom;
+      let half = drw.sidelen;
       var ma = 
       [
       {move:"move",dx:-half,dy:-half},
@@ -343,8 +477,8 @@ class MovingVector
 
       case "plane":
       let rotate = this.vector.GetDirection();
-      let halflen=(drw.length/2)/zoom;
-      let halfwid=(drw.width/2)/zoom;
+      let halflen=drw.length/2;
+      let halfwid=drw.width/2;
       var ma = 
       [
       {move:"move",dx:-halflen,dy:0},

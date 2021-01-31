@@ -13,12 +13,18 @@ var runAnimate=false;
 var sizeOptions;
 var sizeIndex;
 var frameInterval;
-var zoom;
-var minzoom;
+var fingersDown;g
+var zoomSize;
+var view;
+var framecount;
+var lastpanzoom;
+
 function setup()
 {
-  zoom=1;
-  minzoom=.5;
+  lastpanzoom=0
+  framecount=0
+  fingersDown=0;
+  zoomSize=[];
   debugMode=true;
   sizeOptions=
   [
@@ -32,14 +38,15 @@ function setup()
   canvas = document.getElementById("canvas");
   ctx = canvas.getContext("2d");
 
-  SetSize(800,600);
-
+  view =new DrawViewWorld({minx:0,miny:0,maxx:400,maxy:400},{dx:0,dy:0},
+                {now:1,min:.1,max:2});
+  SetSize();
+  
   firstPass=true;
   circleRadius=10;
   dragto=[];
   runAnimate=false;
   Objs=[];
-  if (get("drawgrid").checked)DrawGrid();
   if (get("drawrunway").checked)DrawRunway();
   frameInterval=10;
   canvas.addEventListener('touchstart', TouchStart);
@@ -47,38 +54,46 @@ function setup()
   canvas.addEventListener('touchend', TouchEnd); 
 }
 
-function SetSize(width,height,scale=1,offsetx=0,offsety=0)
+function ClearStatus()
 {
-  let canvasdiv = get("canvasdiv"); 
-  canvasdiv.width=width;
-  canvasdiv.height=height;
-  canvas.width=width;
-  canvas.height=height;
-  ctx.translate(0-offsetx,this.canvas.height-offsety)
-  ctx.scale(scale,-scale);
+  get("status").value="";
 }
 
-function Zoom()
+function SetSize()
 {
+  //AddStatus("in SetSize()");
+  let canvasdiv = get("canvasdiv"); 
+
+  let vl = view.GetViewLimits();
+  //AddStatus(JSON.stringify(vl));
+  canvasdiv.width=vl[0];
+  canvasdiv.height=vl[1];
+  canvas.width=vl[0];
+  canvas.height=vl[1];
+
+  let vo=view.GetOffset();
+  //AddStatus("Offset = "+JSON.stringify(vo));
+  ctx.translate(-vo.dx,this.canvas.height+vo.dy);
+  let z = view.GetZoom();
+  ctx.scale(z,-z);
+  if (get("drawgrid").checked)DrawGrid();
+  //AddStatus("exiting SetSize()");
+}
+
+function Zoom(z)
+{ 
+  //AddStatus("in Zoom("+z+")");
+  view.SetZoom(z*view.GetZoom());
   try
-  {
-    if (zoom==1)
-    {
-      zoom = .5; 
-      SetSize(sizeOptions[sizeIndex].width,sizeOptions[sizeIndex].height,
-        zoom)
-      AddStatus("canvas w,h="+canvas.width+","+canvas.height);
-    }
-    else
-    {
-      zoom=1;
-      SetSize(sizeOptions[sizeIndex].width,sizeOptions[sizeIndex].height);
-    }
+  { 
+    SetSize();
+    //AddStatus("canvas w,h="+canvas.width+","+canvas.height);
   }
   catch(err)
   {
     AddStatus(err);
   }
+  //AddStatus("exiting Zoom(z)");
 }
 
 function CanvasSize()
@@ -86,8 +101,9 @@ function CanvasSize()
   try
   {
     if(++sizeIndex>=sizeOptions.length)sizeIndex=0;
+    view.SetView(sizeOptions[sizeIndex].width,sizeOptions[sizeIndex].height);
     //AddStatus("CanvasSize "+JSON.stringify(sizeOptions[sizeIndex]));
-    SetSize(sizeOptions[sizeIndex].width,sizeOptions[sizeIndex].height);
+    SetSize();
   }
   catch(err)
   {
@@ -97,40 +113,66 @@ function CanvasSize()
 
 function Gravity()
 {
-  AddStatus("Entering Gravity");
+  //AddStatus("Entering Gravity");
   for (let mv of Objs)
   {
     mv.drawObject.gravity=get("gravityon").checked?
        Number(get("gravity").value*frameInterval/1000):0;
   }
-  AddStatus("Exiting Gravity");
+  //AddStatus("Exiting Gravity");
 }
 
 function Drag()
 {
-  AddStatus("Entering Drag");
+  //AddStatus("Entering Drag");
   for (let mv of Objs)
   {
     mv.drawObject.drag=get("dragon").checked?
-       get("drag").value*frameInterval/1000:0;
+       get("drag").value*frameInterval/5000:0;
   }
-  AddStatus("Exiting Drag");
+  //AddStatus("Exiting Drag");
 }
+
 
 function TouchStart(event)
 {
+  let e = event.touches;
+  //AddStatus("canvas.height/view.zoom.min"+canvas.height/view.zoom.min);
+  fingersDown=e.length;
+  if (fingersDown>1)
+  {
+    // zoomSize=[[f0x1,f0y1],[f1x1,f1y1],[f0x2,f0y2],[f1x2,f1y2]]
+    zoomSize=[[],[],[],[]];
+    zoomSize[0]=[e[0].clientX,e[0].clientY];
+    zoomSize[1]=[e[1].clientX,e[1].clientY];
+    //AddStatus(JSON.stringify(zoomSize));
+    //AddStatus("canvas.height/view.zoom.min"+canvas.height/view.zoom.min);
+  }
   linePath=[];
 }
 function TouchMove(event)
 {
-  if (Objs.length==0)return;
+  if ((framecount-lastpanzoom)<20)
+  {
+    //AddStatus("too close to last pan/zoom");
+    return;
+  }
   event.preventDefault();
-
+  if (fingersDown>1)
+  {
+    let e = event.touches;
+    zoomSize[2]=[e[0].clientX,e[0].clientY];
+    zoomSize[3]=[e[1].clientX,e[1].clientY];
+    //AddStatus(JSON.stringify(zoomSize));
+    return;
+  }
+  //AddStatus("framecount,lastpanzoom: "+framecount+","+lastpanzoom);
+  if (Objs.length==0)return;
   var rect = canvas.getBoundingClientRect();
   //x position within the element.
-  var x = (event.touches[0].clientX + rect.left - 30)/zoom;  
-  //y position within the element.
-  var y = (canvas.height - event.touches[0].clientY + rect.top)/zoom;  
+  var x = view.GetOffset().dx/view.GetZoom()+(event.touches[0].clientX + rect.left - 30)/view.GetZoom();  
+  //y position within the element. 
+  var y = view.GetOffset().dy/view.GetZoom()+(canvas.height - event.touches[0].clientY + rect.top)/view.GetZoom();
   
   if (dragmv==undefined)
   {
@@ -152,7 +194,44 @@ function TouchMove(event)
 }
 function TouchEnd(event)
 {
+  
+  if (fingersDown>1)
+  {
+    //zoomSize=[[f0x1,f0y1],[f1x1,f1y1],[f0x2,f0y2],[f1x2,f1y2]]
+    fingersDown=0;
+    let beginLen=Math.hypot(
+          zoomSize[0][0]-zoomSize[1][0],zoomSize[0][1]-zoomSize[1][1]);
+    let endLen=Math.hypot(
+          zoomSize[2][0]-zoomSize[3][0],zoomSize[2][1]-zoomSize[3][1]);
+    //AddStatus("beginLen,endLen="+beginLen+","+endLen);
+    // see if we are panning. for now assume less than a 10% change
+    // in begin vs end length means we are panning
+    let z = endLen/beginLen;
+    //AddStatus("panning test z = "+z);
+    if (z>.9 && z<1.1)
+    // panning
+    {
+      //zoomSize=[[f0x1,f0y1],[f1x1,f1y1],[f0x2,f0y2],[f1x2,f1y2]]
+      //AddStatus("Panning");
+      let offsetx=-(zoomSize[2][0]-zoomSize[0][0])*view.GetZoom();
+      let offsety=(zoomSize[2][1]-zoomSize[0][1])*view.GetZoom();
+      view.AddOffset(offsetx,offsety);
+      //AddStatus("Pan x,y: "+offsetx+","+offsety);
+      //AddStatus("New view stats: "+JSON.stringify(view));
+      SetSize();
+      //AddStatus("Exiting Panning");
+    }
+    else 
+    // zoom
+    {
+      z = 1+.4*(z-1); // make zoom less sensitive
+      Zoom(z);
+    } 
+    lastpanzoom=framecount;
+    return;
+  }
   if (Objs.length==0)return;
+  //AddStatus(dragmv.Snapshot());
   let dragVector=new Vector(dragto[0]-dragmv.xpos,dragto[1]-dragmv.ypos);
   // allow the user to cancel the vector by moving back to the origin
   if (dragVector.GetLength()<50)
@@ -208,7 +287,7 @@ try
   //AddStatus("about to test drawItem");
   if(drawItem(x,y)==undefined)
   {
-    AddStatus("Returning");
+    AddStatus("Error... cant draw, Exiting");
     return;
   }
   if (get("oneball").checked)
@@ -275,19 +354,19 @@ try
     else if (sel.value=="Plane")
       drawobj=plane;
     let movingVector = 
-      new MovingVector(speed,speed,0,0,drawobj);
+      new MovingVector(speed,speed,0,0,drawobj,view);
     if (Objs.length==0)movingVector.drawObject.color="red";
     Objs.push(movingVector);
     //AddStatus(Objs[Objs.length-1].drawObject.color);
-    get("info").innerHTML="Objects: "+Objs.length;
+    get("objcount").innerHTML="Objects: "+Objs.length;
     if (Objs.length>1)return;
   }
   //AddStatus(JSON.stringify(Objs));
   var id = setInterval(frame, frameInterval);
-  var loopcount=0;
+  framecount=0;
   function frame() 
   {
-    get("info").innerHTML=++loopcount;
+    get("framecount").innerHTML=" Frames: "+ ++framecount;
     if (get("pause").checked)return;
     try
     {
@@ -305,24 +384,36 @@ try
         //AddStatus("circleRadius="+circleRadius);
         firstPass=false;
       }
-      //AddStatus("Bump all positions, check if at canvas edge");
+      // AddStatus("Bump all positions, check if at world edge");
+      // world edge is canvas size / zoom
       for (let mv of Objs)
       {
-        let testx=(mv.xpos + mv.vector.x)*minzoom;
-        let testy=(mv.ypos + mv.vector.y)*minzoom
-
-        if ((testx<circleRadius*minzoom) && (mv.vector.x<0)) 
-          mv.vector.x*=-1;
-        else if ((testx>(canvas.width-circleRadius*zoom))&&(mv.vector.x>0))
-          mv.vector.x*=-1;
-        if ((testy<circleRadius*minzoom) && (mv.vector.y<0))
+        let testx= (mv.xpos + mv.vector.x);
+        let testy= (mv.ypos + mv.vector.y);
+        
+        if (get("collisionon").checked)
+        {
+          if ((testx<0) && (mv.vector.x<0)) 
           {
-            mv.ypos=circleRadius;
+            //AddStatus("testx,vector.x"+testx+","+mv.vector.x);
+            mv.vector.x*=-1;
+          }
+          else if (testx>(canvas.width/view.zoom.min))
+          {
+            //AddStatus("testx> testx,canvas.width,view.zoom.minx"
+            // +testx+","+canvas.width+","+view.zoom.minx);
+            mv.vector.x=-1*Math.abs(mv.vector.x);
+          }
+          if ((testy<0) && (mv.vector.y<0))
+          {
             mv.vector.y*=-1;
           }
-        else if ((testy>(canvas.height-circleRadius*zoom)) && (mv.vector.y>0))
-          mv.vector.y*=-1;
-        
+          else if ((testy>(canvas.height/view.zoom.min)) &&
+                 (mv.vector.y>0))
+          {
+            mv.vector.y*=-1;
+          }
+        }
         //AddStatus("Advance positions");
         mv.Move();
         //mv.xpos+=mv.vector.x;
@@ -380,7 +471,7 @@ try
         if (mv.drawObject.type=="circle" || 
             mv.drawObject.type=="square" ||
             mv.drawObject.type=="plane")
-          mv.Draw(ctx,zoom);
+          mv.Draw(ctx,view.GetZoom());
         else
           drawItem(mv.xpos,mv.ypos,mv.color);
       }
@@ -390,13 +481,13 @@ try
     }
     catch(err)
     {
-      AddStatus(err.message);
+      AddStatus("frame:"+err.message);
     }
   }
   }
   catch(err)
   {
-    AddStatus(err.message);
+    AddStatus("Animate:"+err.message);
   }
 }
 function CollisionBounce(mv1,mv2)
@@ -472,9 +563,10 @@ function drawItem(x,y,color="black")
 
 function DrawRunway()
 {
-  let rwy=10;
-  let conelen=80;
-  let conewidth=5;
+  // put it in the middle of the canvas
+  let rwy=10/view.GetZoom();
+  let conelen=80/view.GetZoom();
+  let conewidth=5/view.GetZoom();
   let x=canvas.width/2;
   let y=canvas.height/2;
   ctx.beginPath();
@@ -492,18 +584,23 @@ function DrawRunway()
 
 function DrawGrid()
 {
-  ctx.setLineDash([2/minzoom, 10/minzoom]);/*dashes are 5px and spaces are 3px*/
-  ctx.lineWidth=1/zoom;
+  ctx.setLineDash([2,10]);
   ctx.beginPath();
-  for (let x=100;x<canvas.width;x+=100)
+  let viewx=0;
+  let viewy=0;
+  for (let x=100;viewx<canvas.width/view.GetZoom();x+=100/view.GetZoom())
   {
-    ctx.moveTo(x/minzoom,0);
-    ctx.lineTo(x/minzoom,canvas.height/minzoom);
+    viewx=view.GetViewX(x);
+    //AddStatus("gridx="+viewx);
+    ctx.moveTo(viewx,0);
+    ctx.lineTo(viewx,view.GetOffset().dy+view.GetWorldY(canvas.height)); 
+    //ctx.lineTo(viewx,view.GetOffset().dy+canvas.height/view.GetZoom());
   }
-  for (let y=100;y<canvas.height;y+=100)
+  for (let y=100;viewy<canvas.height/view.GetZoom();y+=100/view.GetZoom())
   {
-    ctx.moveTo(0,y/minzoom);
-    ctx.lineTo(canvas.width/minzoom,y/minzoom);
+    viewy=view.GetViewY(y);
+    ctx.moveTo(0,viewy);
+    ctx.lineTo(view.GetOffset().dx+view.GetWorldX(canvas.width),viewy);
   }
   ctx.stroke();
   ctx.setLineDash([]);
@@ -540,6 +637,27 @@ function DrawPath(points)
 }
 
 function Clear()
-{
-  ctx.clearRect(0,0,canvas.width/zoom,canvas.height/zoom);
+  {
+  try
+  {
+    // Store the current transformation matrix
+    ctx.save();
+
+    // Use the identity matrix while clearing the canvas
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0,0, canvas.width, canvas.height);
+    
+    // Restore the transform
+    ctx.restore();
+  }
+  catch(err)
+  {
+    AddStatus(err.message);
+  }
 }
+/*
+function Clear()
+{
+  ctx.clearRect(0,0,canvas.width/view.GetZoom(),canvas.height/view.GetZoom());
+}
+*/

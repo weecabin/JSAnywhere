@@ -8,7 +8,8 @@ function Setup()
 {
   try
   {
-    TestVector();
+    TestDrawViewWorld();
+    //TestVector();
     //TestAverageData();
     //AddStatus();
     //TableTest();
@@ -18,6 +19,42 @@ function Setup()
   catch(err)
   {
     console.log(err)
+  }
+}
+
+function TestDrawViewWorld()
+{
+  try
+  { 
+    let ve={minx:0,miny:0,maxx:400,maxy:400};
+    let wo={dx:0,dy:0};
+    let dvw = new DrawViewWorld(ve,wo,1,10)
+
+    AddStatus("Settings: "+JSON.stringify(dvw.GetAll()));
+    AddStatus("dvw.GetWorldPoint([10,10]) = "+dvw.GetWorldPoint([10,10]));
+
+    AddStatus();
+    dvw.SetOffset(5,10);
+    AddStatus("Settings: "+JSON.stringify(dvw.GetAll()));
+    AddStatus("dvw.GetWorldPoint([10,10]) = "+dvw.GetWorldPoint([10,10]));
+
+    AddStatus();
+    AddStatus("Settings: "+JSON.stringify(dvw.GetAll()));
+    AddStatus("dvw.GetViewPoint([0,0]) "+ dvw.GetViewPoint([0,0]));
+
+    AddStatus();
+    dvw.SetZoom(2);
+    dvw.SetOffset(5,10);
+    AddStatus("Settings: "+JSON.stringify(dvw.GetAll()));
+    AddStatus("dvw.GetWorldPoint([10,10]) = "+dvw.GetWorldPoint([10,10]));
+    AddStatus("dvw.GetViewPoint(dvw.GetWorldPoint([10,10])) "+
+              dvw.GetViewPoint(dvw.GetWorldPoint([10,10])));
+    AddStatus("dvw.GetWorldPoint(dvw.GetViewPoint([10,10])) "+
+              dvw.GetWorldPoint(dvw.GetViewPoint([10,10])));
+  }
+  catch(err)
+  {
+    AddStatus(err);
   }
 }
 
