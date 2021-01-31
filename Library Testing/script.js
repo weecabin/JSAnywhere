@@ -28,13 +28,34 @@ function TestDrawViewWorld()
   { 
     let ve={minx:0,miny:0,maxx:400,maxy:400};
     let wo={dx:0,dy:0};
-    let dvw = new DrawViewWorld(ve,wo,1,10)
+    let zoom={now:1,min:.2,max:5};
+    let dvw = new DrawViewWorld(ve,wo,zoom)
 
     AddStatus("Settings: "+JSON.stringify(dvw.GetAll()));
     AddStatus("dvw.GetWorldPoint([10,10]) = "+dvw.GetWorldPoint([10,10]));
 
-    AddStatus();
-    dvw.SetOffset(5,10);
+    AddStatus("\nOffset (10,20)");
+    dvw.SetOffset(10,20);
+    AddStatus("Settings: "+JSON.stringify(dvw.GetAll()));
+    AddStatus("dvw.GetWorldPoint([10,10]) = "+dvw.GetWorldPoint([10,10]));
+
+    AddStatus("\nZoom 2");
+    dvw.SetZoom(2);
+    AddStatus("Settings: "+JSON.stringify(dvw.GetAll()));
+    AddStatus("dvw.GetWorldPoint([10,10]) = "+dvw.GetWorldPoint([10,10]));
+
+    AddStatus("\nAddOffset (-5,-5)");
+    dvw.AddOffset(5,5);
+    AddStatus("Settings: "+JSON.stringify(dvw.GetAll()));
+    AddStatus("dvw.GetWorldPoint([10,10]) = "+dvw.GetWorldPoint([10,10]));
+
+    AddStatus("\nZoom .5");
+    dvw.SetZoom(.5);
+    AddStatus("Settings: "+JSON.stringify(dvw.GetAll()));
+    AddStatus("dvw.GetWorldPoint([10,10]) = "+dvw.GetWorldPoint([10,10]));
+
+    AddStatus("\nAddOffset (-15,-15)");
+    dvw.AddOffset(-15,-15);
     AddStatus("Settings: "+JSON.stringify(dvw.GetAll()));
     AddStatus("dvw.GetWorldPoint([10,10]) = "+dvw.GetWorldPoint([10,10]));
 
