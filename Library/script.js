@@ -11,6 +11,65 @@ Return Value
 
 *************************************************************/ 
 
+
+/*************************************************************
+**************************************************************
+                        class MultiTouch
+
+Description
+
+Parameters
+
+Return Value
+
+*************************************************************/ 
+class MultiTouch
+{
+  constructor(drawExtents)
+  {
+    this.de = drawExtents;
+    this.touches={t1:null,t2:null}
+  }
+  Add(touches)
+  {
+    if (touches.length>1)
+    {
+      this.touches.t1=this.touches.t2;
+      this.touches.t2={f1:touches[0],f2:touches[1]};
+    }
+  }
+  SetExtents(drawExtents)
+  {
+    this.de=drawExtents;
+  }
+  GetZoom()
+  {
+    let len2 = Math.hypot(
+               this.touches.t2.f2.clientX-this.touches.t2.f1.clientX,
+               this.touches.t2.f2.clientY-this.touches.t2.f1.clientY);
+    let len1 = Math.hypot(
+               this.touches.t1.f2.clientX-this.touches.t1.f1.clientX,
+               this.touches.t1.f2.clientY-this.touches.t1.f1.clientY);
+    return len2/len1;
+  }
+  GetPan()
+  {
+    let dy2 = (this.touches.t2.f1.clientY+this.touches.t2.f2.clientY)/2;
+    let dx2 = (this.touches.t2.f1.clientX+this.touches.t2.f2.clientX)/2;
+    let dy1 = (this.touches.t1.f1.clientY+this.touches.t1.f2.clientY)/2;
+    let dx1 = (this.touches.t1.f1.clientX+this.touches.t1.f2.clientX)/2;
+    return {dx:dx2-dx1,dy:dy2-dy1};
+  }
+  GetWorldPan()
+  {
+    let pan = this.GetPan();
+    pan.dx/=this.de.zoom.now;
+    pan.dy/=this.de.zoom.now;
+    return pan;
+  }
+  
+}
+
 /*************************************************************
 **************************************************************
                            class DrawExtents
