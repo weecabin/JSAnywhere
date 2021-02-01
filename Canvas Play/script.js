@@ -151,7 +151,6 @@ function Drag()
   //AddStatus("Exiting Drag");
 }
 
-
 function TouchStart(event)
 {
   let e = event.touches;
@@ -168,11 +167,12 @@ function TouchStart(event)
   }
   linePath=[];
 }
+
 function TouchMove(event)
 {
   if ((framecount-lastpanzoom)<20)
   {
-    //AddStatus("too close to last pan/zoom");
+    //AddStatus("too close to the last pan/zoom");
     return;
   }
   event.preventDefault();
@@ -210,9 +210,9 @@ function TouchMove(event)
   }
   dragto=[x,y]
 }
+
 function TouchEnd(event)
 {
-  
   if (fingersDown>1)
   {
     //zoomSize=[[f0x1,f0y1],[f1x1,f1y1],[f0x2,f0y2],[f1x2,f1y2]]
@@ -294,7 +294,6 @@ function TouchEnd(event)
   
   dragmv=undefined;
 }
-
 
 function Animate(start)
 {
