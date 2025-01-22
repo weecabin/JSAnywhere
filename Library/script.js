@@ -1,4 +1,3 @@
-
 /*************************************************************
 **************************************************************
 FunctionName:
@@ -28,20 +27,77 @@ class MultiTouch
   constructor(drawExtents)
   {
     this.de = drawExtents;
-    this.touches={t1:null,t2:null}
+    this.touches={t1:undefined,t2:undefined};
+    this.prevZoomOffset={dx:0,dy:0};
+    this.accumulatedZoomOffset={x:0,y:0};
+    this.frame=0;
   }
   Add(touches)
   {
-    if (touches.length>1)
+    //AddStatus("\nEntering MultiTouch.Add()");
+    if (this.touches.t2==undefined)
+    {
+      this.touches.t2={f1:touches[0],f2:touches[1]};
+      this.lastTouchWorld=this.TouchCenter(this.touches.t2);
+      AddStatus(JSON.stringify(this.lastTouchWorld));
+      return false;
+    }
+    else
     {
       this.touches.t1=this.touches.t2;
       this.touches.t2={f1:touches[0],f2:touches[1]};
+      let deltaZoom = this.GetZoom();
+      get("debug4").innerHTML="deltaZoom="+deltaZoom;
+      //multiply current zoom by deltaZoom
+      let prevZoom=this.de.GetZoom();
+      if (this.de.SetZoom(prevZoom*deltaZoom)!=prevZoom)
+      {
+        let zo = this.ZoomOffset(this.TouchCenter(this.touches.t2));
+
+        let wp = this.GetWorldPan();
+        
+        this.de.AddOffset(wp.dx+zo.dx,wp.dy+zo.dy);
+        //this.de.AddOffset(wp.dx,wp.dy);
+        //this.de.AddOffset(zo.dx,zo.dy);
+        this.prevZoomOffset=zo;
+        this.lastTouchWorld=this.TouchCenter(this.touches.t2,true);
+        return true;
+      }
+      return false;
     }
+  }
+  End()
+  {
+    this.touches={t1:undefined,t2:undefined};
   }
   SetExtents(drawExtents)
   {
     this.de=drawExtents;
   }
+  TouchLength(touch)
+  {
+    return Math.hypot(touch.f1.clientX-f2.clientX,touch.f1.clientY-f2.clientY);
+  }
+  TouchCenter(touch,asWorld=false)
+  {
+    let x = (touch.f1.clientX+touch.f2.clientX)/2;
+    let y = (touch.f1.clientY+touch.f2.clientY)/2;
+    //AddStatus(x+","+y);
+    if (asWorld)
+      return {x:this.de.GetWorldX(x),y:this.de.GetWorldY(y)};
+    return {x:x,y:y};
+  }
+  ZoomOffset(worldZoomCenter)
+  {
+    let pinchCenter = this.TouchCenter(this.touches.t2);
+    let zoom = this.GetZoom();
+    let dx = .5*(zoom-1)*pinchCenter.x;
+    let dy = 0;//.5*(zoom-1)*pinchCenter.y;
+    get("debug6").innerHTML=pinchCenter.x.toFixed(2)+","+
+                            pinchCenter.y.toFixed(2);
+    return {dx:dx,dy:dy};
+  }
+
   GetZoom()
   {
     let len2 = Math.hypot(
@@ -50,7 +106,7 @@ class MultiTouch
     let len1 = Math.hypot(
                this.touches.t1.f2.clientX-this.touches.t1.f1.clientX,
                this.touches.t1.f2.clientY-this.touches.t1.f1.clientY);
-    return len2/len1;
+    return (len2/len1);
   }
   GetPan()
   {
@@ -58,13 +114,15 @@ class MultiTouch
     let dx2 = (this.touches.t2.f1.clientX+this.touches.t2.f2.clientX)/2;
     let dy1 = (this.touches.t1.f1.clientY+this.touches.t1.f2.clientY)/2;
     let dx1 = (this.touches.t1.f1.clientX+this.touches.t1.f2.clientX)/2;
-    return {dx:dx2-dx1,dy:dy2-dy1};
+    return {dx:dx2-dx1,
+            dy:dy2-dy1};
   }
   GetWorldPan()
   {
     let pan = this.GetPan();
-    pan.dx/=this.de.zoom.now;
-    pan.dy/=this.de.zoom.now;
+    pan.dx/=-1*Math.pow(this.de.zoom.now,.1);
+    pan.dy/=Math.pow(this.de.zoom.now,.1);
+    //AddStatus("World Pan = "+JSON.stringify(pan));
     return pan;
   }
   
@@ -93,11 +151,11 @@ class DrawViewWorld
     this.vl=viewLimits;
     this.wo=worldOffset;
     this.zoom=zoom;
-    AddStatus("zoom="+JSON.stringify(this.zoom));
+    //AddStatus("zoom="+JSON.stringify(this.zoom));
   }
   SetView(width,height)
   {
-    AddStatus("new view = "+width+","+height);
+    //AddStatus("new view = "+width+","+height);
     this.vl.maxx=width;
     this.vl.maxy=height;
   }
@@ -123,6 +181,7 @@ class DrawViewWorld
       this.zoom.now=this.zoom.max;
     else
       this.zoom.now=zoom;
+    return this.zoom.now;
     //AddStatus("zoom="+JSON.stringify(this.zoom));
     //AddStatus("exiting SetZoom(zoom)");
   }
@@ -436,6 +495,9 @@ class MovingVector
     this.turnTargetDirection=this.turnDeltaAngle=0;
     this.view=view;
     //AddStatus(JSON.stringify(this.drawObject));
+  }
+  GetEnergy(){
+    return this.vector.GetLength() * this.vector.GetLength();
   }
   Snapshot()
   {
@@ -866,8 +928,8 @@ Return Value
 draws the plot in tje canvas.
 
 *************************************************************/ 
-var canvas;
-var ctx;
+//var canvas;
+//var ctx;
 function DrawPath(plotpoints,showVertices=true,rotate=0)
 {
   AddStatus("Entering DrawPath");
