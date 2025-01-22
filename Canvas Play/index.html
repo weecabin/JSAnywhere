@@ -15,11 +15,11 @@ Your browser does not support the HTML canvas tag.</canvas>
 </div>
 
 <div id="drawitemdiv">
-<input id="slewheading" type="checkbox" checked> Slew Heading<br>
-<input id="snapheading" type="checkbox" checked> Snap Heading<br>
-<input id="drawrunway" type="checkbox" > Draw Runway<br>
-<input id="drawgrid" type="checkbox" checked> Draw Grid<br>
-<input id="showvertices" type="checkbox" checked> Show Vertices<br>
+<input id="slewheading" type="checkbox" unchecked> Slew Heading<br>
+<input id="snapheading" type="checkbox" unchecked> Snap Heading<br>
+<input id="drawrunway" type="checkbox" unchecked> Draw Runway<br>
+<input id="drawgrid" type="checkbox" unchecked> Draw Grid<br>
+<input id="showvertices" type="checkbox" unchecked> Show Vertices<br>
 <input id="collisionon" type="checkbox" checked> Collision Detection<br>
 <input id="gravityon" type="checkbox" onchange="Gravity()"> Gravity<br>
 <input id="dragon" type="checkbox" onchange="Drag()"> Drag<br>
@@ -37,26 +37,25 @@ Your browser does not support the HTML canvas tag.</canvas>
 <input type="button" value="Clear Drawing" onclick="Clear()"><br><br>
 <input type="button" value="Run" onclick="Animate(true)">
 <input type="button" value="Stop" onclick="Animate(false)">
-<input type="button" value="ZoomFull" onclick="ZoomFull()">
+<input type="button" value="Zoom" onclick="Zoom()">
 <input type="button" value="Aspect" onclick="CanvasSize()"><br>
 Random<input type="radio" id="random" name="option" checked>
 Pool<input type="radio" id="pool" name="option">
 One Ball<input type="radio" id="oneball" name="option"><br>
 Offset<input id="offset" type="text" size="4" value="0">
-Speed<input id="speed" type="text" size="4" value="3"><br>
+Speed<input id="speed" type="text" size="4" value="30"><br>
 Drag <input id="drag" type="text" size="6" value=".2"> 
 Gravity <input id="gravity" type="text" size="6" value=".2"><br>
-<p id="objcount" value=""></p>
-<p id="framecount" value=""></p>
-
+<p id="info" value=""></p>
+<p>
+Energy:<span id="energy">?</span>
+</p>
 </div>
 
 <div class="divider"/>
 
 <div class="floatleft">
-  <br>
-  Status/Debug... <input type="button" value="Clear" onclick="ClearStatus()">
-  <br><br>
+  Status/Debug...<br>
   <textarea id="status" value="Status..."></textarea>
 </div>
 
