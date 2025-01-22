@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dynamic Line Chart</title>
+  <style>
+    canvas {
+      border: 1px solid black;
+    }
+  </style>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div id="chart-container" class="chart"></div>
+  <div id="chart-commands" class="chart"></div>
+  <textarea id="debug" rows="20" cols="80"></textarea>
+  <script src="script.js"></script>
+  <script>
+    // Example usage
+    const chart = new LineChart('chart-container', 'chart-commands',800, 400);
+
+    // Adding data series
+    chart.addSeries('Sin', 'red');
+    chart.addSeries('Cos', 'blue');
+    chart.addSeries('Sinc', 'green');
+    //chart.addSeries('Single','red');
+
+    // Adding data points
+    if(0){
+      let x = 0;
+      setInterval( () => {
+        if(x==0)chart.addPoint('Single', x, 50);
+        if(x==10)chart.addPoint('Single', x, 50);
+        if(x==75)chart.addPoint('Single', x, 55);
+        if(x==99)chart.addPoint('Single', x, 60);
+        x++;
+      },25);}
+    
+    if(0){
+    for(let x=-10;x<=10;x+=.1){
+      chart.addPoint('Sinc', x, 5*x==0?0:Math.sin(x)/x);
+    }}
+
+    if(1){
+    let x = 0;
+    setInterval( () => {
+      chart.addPoint('Sin', x, Math.sin(x));
+      chart.addPoint('Cos', x, Math.cos(x));
+      x+=.1;
+    }, 50);} 
+
+  </script> 
+</body>
+</html>
