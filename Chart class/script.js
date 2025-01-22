@@ -3,10 +3,10 @@ class LineChart {
     this.container = document.getElementById(containerId);
     this.cmdcontainer = document.getElementById(commandsId);
     this.yAxisDirty = true;
-    this.dirtyCount=0;
+    this.dirtyCount = 0;
     this.width = width;
     this.height = height;
-    this.margin = { top: 20, right: 20, bottom: 20, left: 40};
+    this.margin = { top: 20, right: 20, bottom: 20, left: 40 };
     this.series = {};
     this.minX = Infinity;
     this.maxX = -Infinity;
@@ -23,7 +23,7 @@ class LineChart {
     // Auto-scale state
     this.autoScale = true;
 
-    this.cursor = { active: false, x: null}; // Track cursor state
+    this.cursor = { active: false, x: null }; // Track cursor state
 
     // Pause datapoint updates
     this.pause = false;
@@ -56,13 +56,13 @@ class LineChart {
       this.zoomFit();
     });
     this.cmdcontainer.appendChild(zoomFitButton);
-    
+
     // Add clear button
     const clearbutton = document.createElement("button");
     clearbutton.textContent = "Clear";
     clearbutton.addEventListener("click", () => {
       this.pause = true;
-      Object.values(this.series).forEach(series => series.data = []);
+      Object.values(this.series).forEach((series) => (series.data = []));
       this.minX = Infinity;
       this.maxX = -Infinity;
       this.minY = Infinity;
@@ -76,16 +76,14 @@ class LineChart {
     cursorButton.addEventListener("click", () => {
       this.cursor.active = !this.cursor.active;
       cursorButton.textContent = this.cursor.active ? "Disable Cursor" : "Enable Cursor";
-      if(this.cursor.active){
+      if (this.cursor.active) {
         const canvasCenterX = (this.width - this.margin.left - this.margin.right) / 2 + this.margin.left;
         this.cursor.x = canvasCenterX;
-        
       }
       this.render(); // Re-render the chart
     });
     this.cmdcontainer.appendChild(cursorButton);
   }
-
 
   addSeries(name, color) {
     if (this.series[name]) {
@@ -94,9 +92,9 @@ class LineChart {
     }
     this.series[name] = { color, data: [] };
   }
-  
+
   addPoint(seriesName, x, y) {
-    if (this.pause)return;
+    if (this.pause) return;
     if (!this.series[seriesName]) {
       console.error(`Series "${seriesName}" does not exist.`);
       return;
@@ -131,7 +129,7 @@ class LineChart {
     this.prepareRender();
   }
 
-  zoomFit(){
+  zoomFit() {
     console.log("In zoomFit");
     this.view.minX = this.minX;
     this.view.maxX = this.maxX;
@@ -146,19 +144,16 @@ class LineChart {
     ctx.font = "12px Arial"; // Ensure consistent font for measurements
     const minYLabel = this.view.minY.toFixed(2);
     const maxYLabel = this.view.maxY.toFixed(2);
-    const widestLabel = Math.max(
-      ctx.measureText(minYLabel).width,
-      ctx.measureText(maxYLabel).width
-    );
+    const widestLabel = Math.max(ctx.measureText(minYLabel).width, ctx.measureText(maxYLabel).width);
 
     // Adjust left margin based on label width
     this.margin.left = widestLabel + 10; // Add padding
   }
 
   // Call this before rendering
-  
+
   prepareRender() {
-    if (this.yAxisDirty){
+    if (this.yAxisDirty) {
       this.calculateMargin();
       this.yAxisDirty = false;
       //console.log("yAxisDirty: "+ (++this.dirtyCount).toString());
@@ -167,55 +162,77 @@ class LineChart {
   }
 
   render() {
-  const ctx = this.context;
-  ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    const ctx = this.context;
+    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-  // Draw axes
-  this.drawAxes(ctx);
+    // Draw axes
+    this.drawAxes(ctx);
 
-  // Draw each series
-  Object.keys(this.series).forEach((name) => {
-    this.drawSeries(ctx, this.series[name]);
-  });
+    // Draw each series
+    Object.keys(this.series).forEach((name) => {
+      this.drawSeries(ctx, this.series[name]);
+    });
 
-  // Draw cursor
-  if (this.cursor.active && this.cursor.x !== null) {
-    this.drawCursor(ctx);
-  }
-}
-
-drawCursor(ctx) {
-  const { left, top, bottom } = this.margin;
-  const xValue = this.view.minX + 
-    ((this.cursor.x - left) / (this.width - left - this.margin.right)) * (this.view.maxX - this.view.minX);
-  // Draw the vertical line
-  ctx.strokeStyle = "red";
-  ctx.beginPath();
-  ctx.moveTo(this.cursor.x, top);
-  ctx.lineTo(this.cursor.x, this.height - bottom);
-  ctx.stroke();
-
-  // Display x value and corresponding y values
-  const textY = top + 10;
-  ctx.fillStyle = "black";
-  ctx.font = "12px Arial";
-  ctx.fillText(`x: ${xValue.toFixed(2)}`, this.cursor.x + 5, textY);
-  let offset = 20;
-  Object.keys(this.series).forEach((name) => {
-    const series = this.series[name];
-    if (series.data.length == 0)return;
-    const closestPoint = series.data.reduce((prev, curr) => 
-      Math.abs(curr.x - xValue) < Math.abs(prev.x - xValue) ? curr : prev
-    );
-
-    if (closestPoint) {
-      ctx.fillStyle = series.color;
-      ctx.fillText(`${name}: ${closestPoint.y.toFixed(2)}`, this.cursor.x + 5, textY + offset);
-      offset += 15;
+    // Draw cursor
+    if (this.cursor.active && this.cursor.x !== null) {
+      this.drawCursor(ctx);
     }
-  });
-}
-  
+  }
+
+  drawCursor(ctx) {
+    const { left, top } = this.margin;
+
+    // Calculate x value
+    const xValue = this.view.minX + ((this.cursor.x - left) / (this.width - left - this.margin.right)) * (this.view.maxX - this.view.minX);
+
+    // Draw the vertical line
+    ctx.strokeStyle = "red";
+    ctx.beginPath();
+    ctx.moveTo(this.cursor.x, top);
+    ctx.lineTo(this.cursor.x, this.height - this.margin.bottom);
+    ctx.stroke();
+
+    // Prepare text segments
+    const segments = [];
+    segments.push({ text: `x: ${xValue.toFixed(2)}`, color: "black" });
+
+    Object.keys(this.series).forEach((name) => {
+      const series = this.series[name];
+      if (series.data.length === 0) return;
+
+      const closestPoint = series.data.reduce((prev, curr) => (Math.abs(curr.x - xValue) < Math.abs(prev.x - xValue) ? curr : prev));
+
+      if (closestPoint) {
+        segments.push({ text: `${name}: ${closestPoint.y.toFixed(2)}`, color: series.color });
+      }
+    });
+
+    // Render text segments with dividers
+    const textY = top - 5; // Position slightly above the top margin
+    let currentX = this.margin.left; // Start at a fixed position near the left edge
+    const divider = " | ";
+    const padding = 5; // Padding between elements
+
+    ctx.font = "12px Arial";
+    ctx.textAlign = "left"; // Make sure text is aligned from the left edge
+    segments.forEach((segment, index) => {
+      // Draw the divider first (except for the first element)
+
+      if (index > 0) {
+        ctx.fillStyle = "black";
+        console.log("divider x:", currentX);
+        ctx.fillText(divider, currentX, textY);
+        currentX += ctx.measureText(divider).width + padding; // Increment currentX after drawing divider
+      }
+
+      // Draw the text segment
+      ctx.fillStyle = segment.color;
+      console.log(segment.text, currentX);
+      ctx.fillText(segment.text, currentX, textY);
+      currentX += ctx.measureText(segment.text).width + padding; // Increment currentX after drawing text
+    });
+  }
+
   drawAxes(ctx) {
     let { top, right, bottom, left } = this.margin;
 
@@ -279,10 +296,8 @@ drawCursor(ctx) {
 
       // Map the Y value to its screen position
       let yPos = 0;
-      if(yRange!=0)
-        yPos = this.height - bottom - ((yValue - this.view.minY) / yRange) * (this.height - top - bottom);
-      else
-        yPos = this.height - bottom;
+      if (yRange != 0) yPos = this.height - bottom - ((yValue - this.view.minY) / yRange) * (this.height - top - bottom);
+      else yPos = this.height - bottom;
 
       // Round the Y value to 2 decimal places for precision
       const formattedYValue = yValue.toFixed(2);
