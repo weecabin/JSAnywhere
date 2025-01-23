@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width" />
+  <title>Filters</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>Filters</h1>
+  <div id="test"></div>
+  <textarea id="debug" rows="20" cols="60"></textarea>
+
+  <script src="script.js"></script>
+  <script>
+
+  let tauValue = 1 - Math.exp(-1);
+  let Tau1SampleCount = 100;
+  let decay = Math.exp(-1/Tau1SampleCount); // e^(-1/samples) decay based on sample count 
+  const lpf = new Lpf(decay); // one way to init filter...
+  // optionally, init filter is with sample count for 1 time constant
+  lpf.SetTauSamples(Tau1SampleCount);
+  lpf.Cage(5);
+  const samples = 1000;
+  let Tau1 = {"sample":0,"value":0};
+  let Tau2 = {"sample":0,"value":0};
+  let Tau3 = {"sample":0,"value":0};
+  const filterStep = 100;
+  document.getElementById("debug").innerHTML = "IIR single pole LPF\n"
+  document.getElementById("debug").innerHTML += "calculated decay to provide TAU of " + 
+    Tau1SampleCount + " samples: " + decay.toFixed(4) + "\n";
+  for(let x = 0;x<samples;x++){
+    let result = lpf.NextSample(filterStep);
+
+    if (Tau1.sample==0 && result/filterStep > tauValue){
+      Tau1.sample = x;
+      Tau1.value = result;
+    }else if (Tau2.sample==0 && x == Tau1.sample*2){
+      Tau2.sample = x;
+      Tau2.value = result;
+    }else if (Tau3.sample==0 && x == Tau1.sample*3){
+      Tau3.sample = x;
+      Tau3.value = result;
+    }
+
+    if (result.toFixed(2) == filterStep){ // we're within 1% of target
+      document.getElementById("debug").innerHTML += "Tau1 sample/value: " + 
+         Tau1.sample + "/" + Tau1.value.toFixed(4) + "\n";
+      document.getElementById("debug").innerHTML += "Tau2 sample/value: " + 
+         Tau2.sample + "/" + Tau2.value.toFixed(4) + "\n";
+      document.getElementById("debug").innerHTML += "Tau3 sample/value: " + 
+         Tau3.sample + "/" + Tau3.value.toFixed(4) + "\n";
+      document.getElementById("debug").innerHTML += "Sample " + 
+         x + " value within 1% = " + result.toFixed(4) + "\n";
+      break;
+    }
+  }
+  </script>
+</body>
+</html>
