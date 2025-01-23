@@ -168,10 +168,18 @@ class LineChart {
     // Draw axes
     this.drawAxes(ctx);
 
+    // Save the context and clip the drawing area for the plot
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(this.margin.left, this.margin.bottom,
+             this.canvas.width-this.margin.left-this.margin.right, 
+             this.canvas.height-this.margin.bottom-this.margin.top); 
+    ctx.clip()
     // Draw each series
     Object.keys(this.series).forEach((name) => {
       this.drawSeries(ctx, this.series[name]);
     });
+    ctx.restore();
 
     // Draw cursor
     if (this.cursor.active && this.cursor.x !== null) {
