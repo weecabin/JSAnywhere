@@ -71,6 +71,7 @@ class LineChart {
     });
     this.cmdcontainer.appendChild(clearbutton);
 
+    // Add Cursor on/off button
     const cursorButton = document.createElement("button");
     cursorButton.textContent = "Toggle Cursor";
     cursorButton.addEventListener("click", () => {
@@ -83,6 +84,10 @@ class LineChart {
       this.render(); // Re-render the chart
     });
     this.cmdcontainer.appendChild(cursorButton);
+
+    // Add the zoom selection input
+    this.addSelectInput("zoomtype","Zoom Type",["Xonly","Yonly","Both"]);
+    this.zoomType = document.getElementById("zoomtype");
   }
 
   addSeries(name, color) {
@@ -130,6 +135,7 @@ class LineChart {
   }
 
   zoomFit() {
+    this.zoomType.value="Both";
     console.log("In zoomFit");
     this.view.minX = this.minX;
     this.view.maxX = this.maxX;
@@ -388,11 +394,15 @@ class LineChart {
 
       const rangeX = (this.startView.maxX - this.startView.minX) * zoomFactor;
       const rangeY = (this.startView.maxY - this.startView.minY) * zoomFactor;
-
+      
+      if (this.zoomType.value=="Xonly" || this.zoomType.value=="Both"){
       this.view.minX = midX - rangeX / 2;
       this.view.maxX = midX + rangeX / 2;
+      }
+      if (this.zoomType.value=="Yonly" || this.zoomType.value=="Both"){
       this.view.minY = midY - rangeY / 2;
       this.view.maxY = midY + rangeY / 2;
+      }
 
       this.prepareRender();
     }
@@ -409,4 +419,31 @@ class LineChart {
     const dy = touches[0].clientY - touches[1].clientY;
     return Math.sqrt(dx * dx + dy * dy);
   }
+
+  // option = ["opt1","opt2"...]
+  addSelectInput(id, name, options) {
+  console.log(id,name,options);
+  // Create the select element
+  const selectElement = document.createElement("select");
+  selectElement.id = id;
+  
+  const placeholderOption = document.createElement("option");
+  placeholderOption.value = "";
+  placeholderOption.text = "Zoom Type";
+  placeholderOption.disabled = true;
+  placeholderOption.selected = true;
+  selectElement.appendChild(placeholderOption);
+
+  // Create and append option elements
+  options.forEach((option) => {
+    let optionElement = document.createElement("option");
+    optionElement.value = option;
+    optionElement.text = option;
+    selectElement.appendChild(optionElement);
+  });
+
+  console.log(selectElement);
+  // Append the select element to the DOM
+  this.cmdcontainer.appendChild(selectElement);
+}
 }
