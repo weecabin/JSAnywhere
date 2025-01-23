@@ -85,10 +85,17 @@ class LineChart {
     });
     this.cmdcontainer.appendChild(cursorButton);
 
-    // Add the zoom selection input
-    this.addSelectInput("zoomtype", "Zoom Type", ["Xonly", "Yonly", "Both"]);
-    this.zoomType = document.getElementById("zoomtype");
-    this.zoomType.value = "Xonly";
+    // Example usage
+    const options = [
+      { value: 'X', text: 'X only', id: 'zoomX' },
+      { value: 'Y', text: 'Y Only', id: 'zoomY' },
+      { value: 'XY', text: 'X&Y', id: 'zoomXY' }
+    ];
+    this.createRadioButtonGroup(options, " Zoom:", commandsId)
+    this.zoomX = document.getElementById("zoomX");
+    this.zoomY = document.getElementById("zoomY");
+    this.zoomXY = document.getElementById("zoomXY");
+    this.zoomX.checked=true;
   }
 
   addSeries(name, color) {
@@ -136,7 +143,7 @@ class LineChart {
   }
 
   zoomFit() {
-    this.zoomType.value = "Xonly";
+    this.zoomX.checked=true;
     console.log("In zoomFit");
     this.view.minX = this.minX;
     this.view.maxX = this.maxX;
@@ -178,8 +185,10 @@ class LineChart {
     // Save the context and clip the drawing area for the plot
     ctx.save();
     ctx.beginPath();
-    ctx.rect(this.margin.left, this.margin.bottom, this.canvas.width - this.margin.left - this.margin.right, this.canvas.height - this.margin.bottom - this.margin.top);
-    ctx.clip();
+    ctx.rect(this.margin.left, this.margin.bottom,
+             this.canvas.width-this.margin.left-this.margin.right, 
+             this.canvas.height-this.margin.bottom-this.margin.top); 
+    ctx.clip()
     // Draw each series
     Object.keys(this.series).forEach((name) => {
       this.drawSeries(ctx, this.series[name]);
@@ -393,14 +402,14 @@ class LineChart {
 
       const rangeX = (this.startView.maxX - this.startView.minX) * zoomFactor;
       const rangeY = (this.startView.maxY - this.startView.minY) * zoomFactor;
-
-      if (this.zoomType.value == "Xonly" || this.zoomType.value == "Both") {
-        this.view.minX = midX - rangeX / 2;
-        this.view.maxX = midX + rangeX / 2;
+      
+      if (this.zoomX.checked || this.zoomXY.checked){
+      this.view.minX = midX - rangeX / 2;
+      this.view.maxX = midX + rangeX / 2;
       }
-      if (this.zoomType.value == "Yonly" || this.zoomType.value == "Both") {
-        this.view.minY = midY - rangeY / 2;
-        this.view.maxY = midY + rangeY / 2;
+      if (this.zoomY.checked || this.zoomXY.checked){
+      this.view.minY = midY - rangeY / 2;
+      this.view.maxY = midY + rangeY / 2;
       }
 
       this.prepareRender();
@@ -419,24 +428,28 @@ class LineChart {
     return Math.sqrt(dx * dx + dy * dy);
   }
 
-  // option = ["opt1","opt2"...]
-  addSelectInput(id, name, options) {
-    console.log(id, name, options);
-    // Create the select element
-    const selectElement = document.createElement("select");
-    selectElement.id = id;
+  createRadioButtonGroup(options, groupName, containerId) {
+    const container = document.getElementById(containerId);
+    const name = document.createElement('span');
+    name.textContent = groupName;
+    container.appendChild(name);
+    for (const option of options) {
+      // Create the radio button
+      const radio = document.createElement('input');
+      radio.type = 'radio';
+      radio.name = groupName;
+      radio.value = option.value;
+      radio.id = option.id;
 
-    // Create and append option elements
-    options.forEach((option) => {
-      let optionElement = document.createElement("option");
-      optionElement.value = option;
-      optionElement.text = option;
-      selectElement.appendChild(optionElement);
-    });
-    const selectPrompt = document.createElement("span");
-    selectPrompt.textContent = " ZoomType:";
-    this.cmdcontainer.appendChild(selectPrompt);
-    // Append the select element to the DOM
-    this.cmdcontainer.appendChild(selectElement);
+      // Create the label
+      const label = document.createElement('label');
+      label.htmlFor = option.id;
+      label.textContent = option.text;
+
+      // Append elements to the container
+      container.appendChild(radio);
+      container.appendChild(label);
+      //container.appendChild(document.createElement('br')); // Add a line break
+    }
   }
 }
