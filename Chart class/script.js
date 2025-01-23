@@ -86,8 +86,9 @@ class LineChart {
     this.cmdcontainer.appendChild(cursorButton);
 
     // Add the zoom selection input
-    this.addSelectInput("zoomtype","Zoom Type",["Xonly","Yonly","Both"]);
+    this.addSelectInput("zoomtype", "Zoom Type", ["Xonly", "Yonly", "Both"]);
     this.zoomType = document.getElementById("zoomtype");
+    this.zoomType.value = "Xonly";
   }
 
   addSeries(name, color) {
@@ -135,7 +136,7 @@ class LineChart {
   }
 
   zoomFit() {
-    this.zoomType.value="Both";
+    this.zoomType.value = "Xonly";
     console.log("In zoomFit");
     this.view.minX = this.minX;
     this.view.maxX = this.maxX;
@@ -177,10 +178,8 @@ class LineChart {
     // Save the context and clip the drawing area for the plot
     ctx.save();
     ctx.beginPath();
-    ctx.rect(this.margin.left, this.margin.bottom,
-             this.canvas.width-this.margin.left-this.margin.right, 
-             this.canvas.height-this.margin.bottom-this.margin.top); 
-    ctx.clip()
+    ctx.rect(this.margin.left, this.margin.bottom, this.canvas.width - this.margin.left - this.margin.right, this.canvas.height - this.margin.bottom - this.margin.top);
+    ctx.clip();
     // Draw each series
     Object.keys(this.series).forEach((name) => {
       this.drawSeries(ctx, this.series[name]);
@@ -394,14 +393,14 @@ class LineChart {
 
       const rangeX = (this.startView.maxX - this.startView.minX) * zoomFactor;
       const rangeY = (this.startView.maxY - this.startView.minY) * zoomFactor;
-      
-      if (this.zoomType.value=="Xonly" || this.zoomType.value=="Both"){
-      this.view.minX = midX - rangeX / 2;
-      this.view.maxX = midX + rangeX / 2;
+
+      if (this.zoomType.value == "Xonly" || this.zoomType.value == "Both") {
+        this.view.minX = midX - rangeX / 2;
+        this.view.maxX = midX + rangeX / 2;
       }
-      if (this.zoomType.value=="Yonly" || this.zoomType.value=="Both"){
-      this.view.minY = midY - rangeY / 2;
-      this.view.maxY = midY + rangeY / 2;
+      if (this.zoomType.value == "Yonly" || this.zoomType.value == "Both") {
+        this.view.minY = midY - rangeY / 2;
+        this.view.maxY = midY + rangeY / 2;
       }
 
       this.prepareRender();
@@ -422,28 +421,22 @@ class LineChart {
 
   // option = ["opt1","opt2"...]
   addSelectInput(id, name, options) {
-  console.log(id,name,options);
-  // Create the select element
-  const selectElement = document.createElement("select");
-  selectElement.id = id;
-  
-  const placeholderOption = document.createElement("option");
-  placeholderOption.value = "";
-  placeholderOption.text = "Zoom Type";
-  placeholderOption.disabled = true;
-  placeholderOption.selected = true;
-  selectElement.appendChild(placeholderOption);
+    console.log(id, name, options);
+    // Create the select element
+    const selectElement = document.createElement("select");
+    selectElement.id = id;
 
-  // Create and append option elements
-  options.forEach((option) => {
-    let optionElement = document.createElement("option");
-    optionElement.value = option;
-    optionElement.text = option;
-    selectElement.appendChild(optionElement);
-  });
-
-  console.log(selectElement);
-  // Append the select element to the DOM
-  this.cmdcontainer.appendChild(selectElement);
-}
+    // Create and append option elements
+    options.forEach((option) => {
+      let optionElement = document.createElement("option");
+      optionElement.value = option;
+      optionElement.text = option;
+      selectElement.appendChild(optionElement);
+    });
+    const selectPrompt = document.createElement("span");
+    selectPrompt.textContent = " ZoomType:";
+    this.cmdcontainer.appendChild(selectPrompt);
+    // Append the select element to the DOM
+    this.cmdcontainer.appendChild(selectElement);
+  }
 }
