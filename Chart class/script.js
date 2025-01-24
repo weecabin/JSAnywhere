@@ -85,7 +85,6 @@ class LineChart {
     });
     this.cmdcontainer.appendChild(cursorButton);
 
-    // Example usage
     const options = [
       { value: 'X', text: 'X only', id: 'zoomX' },
       { value: 'Y', text: 'Y Only', id: 'zoomY' },
@@ -230,7 +229,7 @@ class LineChart {
     });
 
     // Render text segments with dividers
-    const textY = top - 5; // Position slightly above the top margin
+    const textY = top - 10; // Position slightly above the top margin
     let currentX = this.margin.left; // Start at a fixed position near the left edge
     const divider = " | ";
     const padding = 5; // Padding between elements
@@ -430,26 +429,36 @@ class LineChart {
 
   createRadioButtonGroup(options, groupName, containerId) {
     const container = document.getElementById(containerId);
+
+    // Create a span to encapsulate the group
+    const groupSpan = document.createElement('span');
+    groupSpan.className = 'radio-group'; // Add a class for styling if needed
+
+    // Add the group name
     const name = document.createElement('span');
     name.textContent = groupName;
-    container.appendChild(name);
+    groupSpan.appendChild(name);
+
     for (const option of options) {
-      // Create the radio button
-      const radio = document.createElement('input');
-      radio.type = 'radio';
-      radio.name = groupName;
-      radio.value = option.value;
-      radio.id = option.id;
+        // Create the radio button
+        const radio = document.createElement('input');
+        radio.type = 'radio';
+        radio.name = groupName;
+        radio.value = option.value;
+        radio.id = option.id;
 
-      // Create the label
-      const label = document.createElement('label');
-      label.htmlFor = option.id;
-      label.textContent = option.text;
+        // Create the label
+        const label = document.createElement('label');
+        label.htmlFor = option.id;
+        label.textContent = option.text;
 
-      // Append elements to the container
-      container.appendChild(radio);
-      container.appendChild(label);
-      //container.appendChild(document.createElement('br')); // Add a line break
+        // Append the radio button and label to the group span
+        groupSpan.appendChild(radio);
+        groupSpan.appendChild(label);
     }
+
+    // Append the group span to the container
+    container.appendChild(groupSpan);
   }
+
 }
