@@ -3,9 +3,33 @@
 }
 
 .chart{
-  margin:20px;
+  margin:10px;
 }
 
 input{
-  margin:20px;
+  margin:10px;
 } 
+
+.radio-group, button {
+  font-size: 1em;
+  color:black;
+  border: 1px solid #ccc;
+  padding: 4px;
+  background-color: beige;
+  border-radius: 10px;
+  margin-left:10px;
+}
+
+.radio-group span {
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.radio-group input {
+    margin-right: 2px;
+}
+
+button{
+  font-size:.9em;
+}
+
