@@ -16,9 +16,7 @@ class LineChart {
     // Zoom and pan state
     this.view = { minX: this.minX, maxX: this.maxX, minY: this.minY, maxY: this.maxY };
     this.panType = {cursor:"cursor",series:"series"};
-    this.pan = {active:false, type:this.panType.series};
-    //this.isPanning = false;
-    this.startPan = null;
+    this.pan = {active:false, type:this.panType.series, start:null};
     this.startPinchDistance = null;
     this.startView = null;
 
@@ -264,7 +262,7 @@ class LineChart {
       }else{
         this.pan.type = this.panType.series;
       }   
-      this.startPan = { x: xtouch, y: event.touches[0].clientY };
+      this.pan.start = { x: xtouch, y: event.touches[0].clientY };
     } else if (event.touches.length === 2) {
       // Start pinch zoom
       this.pan.active = false;
@@ -282,8 +280,8 @@ class LineChart {
       // Handle panning
       const xtouch = event.touches[0].clientX;
       const ytouch = event.touches[0].clientY
-      const dx = xtouch - this.startPan.x;
-      const dy = ytouch - this.startPan.y;
+      const dx = xtouch - this.pan.start.x;
+      const dy = ytouch - this.pan.start.y;
       const { top, right, bottom, left } = this.margin;
       const rect = this.container.getBoundingClientRect();
       if(this.cursor.active && this.pan.type == this.panType.cursor){
@@ -298,7 +296,7 @@ class LineChart {
       this.view.minY += dy * yScale;
       this.view.maxY += dy * yScale;
       }
-      this.startPan = { x: xtouch, y: ytouch };
+      this.pan.start = { x: xtouch, y: ytouch };
       this.render();
     } else if (event.touches.length === 2) {
       // Handle pinch zoom
