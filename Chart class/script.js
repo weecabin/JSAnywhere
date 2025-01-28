@@ -15,7 +15,9 @@ class LineChart {
 
     // Zoom and pan state
     this.view = { minX: this.minX, maxX: this.maxX, minY: this.minY, maxY: this.maxY };
-    this.isPanning = false;
+    this.panType = {cursor:"cursor",series:"series"};
+    this.pan = {active:false, type:this.panType.series};
+    //this.isPanning = false;
     this.startPan = null;
     this.startPinchDistance = null;
     this.startView = null;
@@ -40,61 +42,7 @@ class LineChart {
     this.canvas.addEventListener("touchmove", (e) => this.handleTouchMove(e));
     this.canvas.addEventListener("touchend", () => this.handleTouchEnd());
 
-    // Add auto-scale toggle button
-    const button = document.createElement("button");
-    button.textContent = "Toggle Auto-Scale";
-    button.addEventListener("click", () => {
-      this.autoScale = !this.autoScale;
-      button.textContent = this.autoScale ? "Disable Auto-Scale" : "Enable Auto-Scale";
-    });
-    this.cmdcontainer.appendChild(button);
-
-    // Add zoom all button
-    const zoomFitButton = document.createElement("button");
-    zoomFitButton.textContent = "Zoom Fit";
-    zoomFitButton.addEventListener("click", () => {
-      this.zoomFit();
-    });
-    this.cmdcontainer.appendChild(zoomFitButton);
-
-    // Add clear button
-    const clearbutton = document.createElement("button");
-    clearbutton.textContent = "Clear";
-    clearbutton.addEventListener("click", () => {
-      this.pause = true;
-      Object.values(this.series).forEach((series) => (series.data = []));
-      this.minX = Infinity;
-      this.maxX = -Infinity;
-      this.minY = Infinity;
-      this.maxY = -Infinity;
-      this.pause = false;
-    });
-    this.cmdcontainer.appendChild(clearbutton);
-
-    // Add Cursor on/off button
-    const cursorButton = document.createElement("button");
-    cursorButton.textContent = "Toggle Cursor";
-    cursorButton.addEventListener("click", () => {
-      this.cursor.active = !this.cursor.active;
-      cursorButton.textContent = this.cursor.active ? "Disable Cursor" : "Enable Cursor";
-      if (this.cursor.active) {
-        const canvasCenterX = (this.width - this.margin.left - this.margin.right) / 2 + this.margin.left;
-        this.cursor.x = canvasCenterX;
-      }
-      this.render(); // Re-render the chart
-    });
-    this.cmdcontainer.appendChild(cursorButton);
-
-    const options = [
-      { value: 'X', text: 'X only', id: 'zoomX' },
-      { value: 'Y', text: 'Y Only', id: 'zoomY' },
-      { value: 'XY', text: 'X&Y', id: 'zoomXY' }
-    ];
-    this.createRadioButtonGroup(options, " Zoom:", commandsId)
-    this.zoomX = document.getElementById("zoomX");
-    this.zoomY = document.getElementById("zoomY");
-    this.zoomXY = document.getElementById("zoomXY");
-    this.zoomX.checked=true;
+    this.addControls(containerId, commandsId);
   }
 
   addSeries(name, color) {
@@ -142,7 +90,7 @@ class LineChart {
   }
 
   zoomFit() {
-    this.zoomX.checked=true;
+    this.zoomX.checked = true;
     console.log("In zoomFit");
     this.view.minX = this.minX;
     this.view.maxX = this.maxX;
@@ -184,10 +132,8 @@ class LineChart {
     // Save the context and clip the drawing area for the plot
     ctx.save();
     ctx.beginPath();
-    ctx.rect(this.margin.left, this.margin.bottom,
-             this.canvas.width-this.margin.left-this.margin.right, 
-             this.canvas.height-this.margin.bottom-this.margin.top); 
-    ctx.clip()
+    ctx.rect(this.margin.left, this.margin.bottom, this.canvas.width - this.margin.left - this.margin.right, this.canvas.height - this.margin.bottom - this.margin.top);
+    ctx.clip();
     // Draw each series
     Object.keys(this.series).forEach((name) => {
       this.drawSeries(ctx, this.series[name]);
@@ -200,59 +146,7 @@ class LineChart {
     }
   }
 
-  drawCursor(ctx) {
-    const { left, top } = this.margin;
-
-    // Calculate x value
-    const xValue = this.view.minX + ((this.cursor.x - left) / (this.width - left - this.margin.right)) * (this.view.maxX - this.view.minX);
-
-    // Draw the vertical line
-    ctx.strokeStyle = "red";
-    ctx.beginPath();
-    ctx.moveTo(this.cursor.x, top);
-    ctx.lineTo(this.cursor.x, this.height - this.margin.bottom);
-    ctx.stroke();
-
-    // Prepare text segments
-    const segments = [];
-    segments.push({ text: `x: ${xValue.toFixed(2)}`, color: "black" });
-
-    Object.keys(this.series).forEach((name) => {
-      const series = this.series[name];
-      if (series.data.length === 0) return;
-
-      const closestPoint = series.data.reduce((prev, curr) => (Math.abs(curr.x - xValue) < Math.abs(prev.x - xValue) ? curr : prev));
-
-      if (closestPoint) {
-        segments.push({ text: `${name}: ${closestPoint.y.toFixed(2)}`, color: series.color });
-      }
-    });
-
-    // Render text segments with dividers
-    const textY = top - 10; // Position slightly above the top margin
-    let currentX = this.margin.left; // Start at a fixed position near the left edge
-    const divider = " | ";
-    const padding = 5; // Padding between elements
-
-    ctx.font = "12px Arial";
-    ctx.textAlign = "left"; // Make sure text is aligned from the left edge
-    segments.forEach((segment, index) => {
-      // Draw the divider first (except for the first element)
-
-      if (index > 0) {
-        ctx.fillStyle = "black";
-        console.log("divider x:", currentX);
-        ctx.fillText(divider, currentX, textY);
-        currentX += ctx.measureText(divider).width + padding; // Increment currentX after drawing divider
-      }
-
-      // Draw the text segment
-      ctx.fillStyle = segment.color;
-      console.log(segment.text, currentX);
-      ctx.fillText(segment.text, currentX, textY);
-      currentX += ctx.measureText(segment.text).width + padding; // Increment currentX after drawing text
-    });
-  }
+  
 
   drawAxes(ctx) {
     let { top, right, bottom, left } = this.margin;
@@ -362,25 +256,40 @@ class LineChart {
   handleTouchStart(event) {
     if (event.touches.length === 1) {
       // Start panning
-      this.isPanning = true;
-      this.startPan = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+      this.pan.active = true;
+      const xtouch = event.touches[0].clientX;
+      const rect = this.container.getBoundingClientRect();
+      if(this.cursor.active && Math.abs(this.cursor.x-xtouch+rect.left)< 25){
+        this.pan.type = this.panType.cursor;
+      }else{
+        this.pan.type = this.panType.series;
+      }   
+      this.startPan = { x: xtouch, y: event.touches[0].clientY };
     } else if (event.touches.length === 2) {
       // Start pinch zoom
-      this.isPanning = false;
+      this.pan.active = false;
       this.startPinchDistance = this.getPinchDistance(event.touches);
       this.startView = { ...this.view };
     }
   }
 
+  dbg(txt){document.getElementById("debug").innerHTML += txt +"\n";}
+
   handleTouchMove(event) {
     event.preventDefault();
 
-    if (this.isPanning && event.touches.length === 1) {
+    if (this.pan.active && event.touches.length === 1) {
       // Handle panning
-      const dx = event.touches[0].clientX - this.startPan.x;
-      const dy = event.touches[0].clientY - this.startPan.y;
-
+      const xtouch = event.touches[0].clientX;
+      const ytouch = event.touches[0].clientY
+      const dx = xtouch - this.startPan.x;
+      const dy = ytouch - this.startPan.y;
       const { top, right, bottom, left } = this.margin;
+      const rect = this.container.getBoundingClientRect();
+      if(this.cursor.active && this.pan.type == this.panType.cursor){
+        this.cursor.x += dx;
+      }
+      else{
       const xScale = (this.view.maxX - this.view.minX) / (this.width - left - right);
       const yScale = (this.view.maxY - this.view.minY) / (this.height - top - bottom);
 
@@ -388,8 +297,8 @@ class LineChart {
       this.view.maxX -= dx * xScale;
       this.view.minY += dy * yScale;
       this.view.maxY += dy * yScale;
-
-      this.startPan = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+      }
+      this.startPan = { x: xtouch, y: ytouch };
       this.render();
     } else if (event.touches.length === 2) {
       // Handle pinch zoom
@@ -401,14 +310,14 @@ class LineChart {
 
       const rangeX = (this.startView.maxX - this.startView.minX) * zoomFactor;
       const rangeY = (this.startView.maxY - this.startView.minY) * zoomFactor;
-      
-      if (this.zoomX.checked || this.zoomXY.checked){
-      this.view.minX = midX - rangeX / 2;
-      this.view.maxX = midX + rangeX / 2;
+
+      if (this.zoomX.checked || this.zoomXY.checked) {
+        this.view.minX = midX - rangeX / 2;
+        this.view.maxX = midX + rangeX / 2;
       }
-      if (this.zoomY.checked || this.zoomXY.checked){
-      this.view.minY = midY - rangeY / 2;
-      this.view.maxY = midY + rangeY / 2;
+      if (this.zoomY.checked || this.zoomXY.checked) {
+        this.view.minY = midY - rangeY / 2;
+        this.view.maxY = midY + rangeY / 2;
       }
 
       this.prepareRender();
@@ -416,7 +325,7 @@ class LineChart {
   }
 
   handleTouchEnd() {
-    this.isPanning = false;
+    this.pan.active = false;
     this.startPinchDistance = null;
     this.startView = null;
   }
@@ -427,38 +336,150 @@ class LineChart {
     return Math.sqrt(dx * dx + dy * dy);
   }
 
+  addControls(containerId, commandsId) {
+    // Add auto-scale toggle button
+    const button = document.createElement("button");
+    button.textContent = "Toggle Auto-Scale";
+    button.addEventListener("click", () => {
+      this.autoScale = !this.autoScale;
+      button.textContent = this.autoScale ? "Disable Auto-Scale" : "Enable Auto-Scale";
+    });
+    this.cmdcontainer.appendChild(button);
+
+    // Add zoom all button
+    const zoomFitButton = document.createElement("button");
+    zoomFitButton.textContent = "Zoom Fit";
+    zoomFitButton.addEventListener("click", () => {
+      this.zoomFit();
+    });
+    this.cmdcontainer.appendChild(zoomFitButton);
+
+    // Add clear button
+    const clearbutton = document.createElement("button");
+    clearbutton.textContent = "Clear";
+    clearbutton.addEventListener("click", () => {
+      this.pause = true;
+      Object.values(this.series).forEach((series) => (series.data = []));
+      this.minX = Infinity;
+      this.maxX = -Infinity;
+      this.minY = Infinity;
+      this.maxY = -Infinity;
+      this.pause = false;
+    });
+    this.cmdcontainer.appendChild(clearbutton);
+
+    // Add Cursor on/off button
+    const cursorButton = document.createElement("button");
+    cursorButton.textContent = "Toggle Cursor";
+    cursorButton.addEventListener("click", () => {
+      this.cursor.active = !this.cursor.active;
+      cursorButton.textContent = this.cursor.active ? "Disable Cursor" : "Enable Cursor";
+      if (this.cursor.active) {
+        const canvasCenterX = (this.width - this.margin.left - this.margin.right) / 2 + this.margin.left;
+        this.cursor.x = canvasCenterX;
+      }
+      this.render(); // Re-render the chart
+    });
+    this.cmdcontainer.appendChild(cursorButton);
+
+    // Add zoom controls
+    const options = [
+      { value: "X", text: "X only", id: "zoomX" },
+      { value: "Y", text: "Y Only", id: "zoomY" },
+      { value: "XY", text: "X&Y", id: "zoomXY" },
+    ];
+    this.createRadioButtonGroup(options, " Zoom:", commandsId);
+    this.zoomX = document.getElementById("zoomX");
+    this.zoomY = document.getElementById("zoomY");
+    this.zoomXY = document.getElementById("zoomXY");
+    this.zoomX.checked = true;
+  }
+
   createRadioButtonGroup(options, groupName, containerId) {
     const container = document.getElementById(containerId);
 
     // Create a span to encapsulate the group
-    const groupSpan = document.createElement('span');
-    groupSpan.className = 'radio-group'; // Add a class for styling if needed
+    const groupSpan = document.createElement("span");
+    groupSpan.className = "radio-group"; // Add a class for styling if needed
 
     // Add the group name
-    const name = document.createElement('span');
+    const name = document.createElement("span");
     name.textContent = groupName;
     groupSpan.appendChild(name);
 
     for (const option of options) {
-        // Create the radio button
-        const radio = document.createElement('input');
-        radio.type = 'radio';
-        radio.name = groupName;
-        radio.value = option.value;
-        radio.id = option.id;
+      // Create the radio button
+      const radio = document.createElement("input");
+      radio.type = "radio";
+      radio.name = groupName;
+      radio.value = option.value;
+      radio.id = option.id;
 
-        // Create the label
-        const label = document.createElement('label');
-        label.htmlFor = option.id;
-        label.textContent = option.text;
+      // Create the label
+      const label = document.createElement("label");
+      label.htmlFor = option.id;
+      label.textContent = option.text;
 
-        // Append the radio button and label to the group span
-        groupSpan.appendChild(radio);
-        groupSpan.appendChild(label);
+      // Append the radio button and label to the group span
+      groupSpan.appendChild(radio);
+      groupSpan.appendChild(label);
     }
 
     // Append the group span to the container
     container.appendChild(groupSpan);
   }
 
+  drawCursor(ctx) {
+    const { left, top } = this.margin;
+
+    // Calculate x value
+    const xValue = this.view.minX + ((this.cursor.x - left) / (this.width - left - this.margin.right)) * (this.view.maxX - this.view.minX);
+
+    // Draw the vertical line
+    ctx.strokeStyle = "red";
+    ctx.beginPath();
+    ctx.moveTo(this.cursor.x, top);
+    ctx.lineTo(this.cursor.x, this.height - this.margin.bottom);
+    ctx.stroke();
+
+    // Prepare text segments
+    const segments = [];
+    segments.push({ text: `x: ${xValue.toFixed(2)}`, color: "black" });
+
+    Object.keys(this.series).forEach((name) => {
+      const series = this.series[name];
+      if (series.data.length === 0) return;
+
+      const closestPoint = series.data.reduce((prev, curr) => (Math.abs(curr.x - xValue) < Math.abs(prev.x - xValue) ? curr : prev));
+
+      if (closestPoint) {
+        segments.push({ text: `${name}: ${closestPoint.y.toFixed(2)}`, color: series.color });
+      }
+    });
+
+    // Render text segments with dividers
+    const textY = top - 10; // Position slightly above the top margin
+    let currentX = this.margin.left; // Start at a fixed position near the left edge
+    const divider = " | ";
+    const padding = 5; // Padding between elements
+
+    ctx.font = "12px Arial";
+    ctx.textAlign = "left"; // Make sure text is aligned from the left edge
+    segments.forEach((segment, index) => {
+      // Draw the divider first (except for the first element)
+
+      if (index > 0) {
+        ctx.fillStyle = "black";
+        console.log("divider x:", currentX);
+        ctx.fillText(divider, currentX, textY);
+        currentX += ctx.measureText(divider).width + padding; // Increment currentX after drawing divider
+      }
+
+      // Draw the text segment
+      ctx.fillStyle = segment.color;
+      console.log(segment.text, currentX);
+      ctx.fillText(segment.text, currentX, textY);
+      currentX += ctx.measureText(segment.text).width + padding; // Increment currentX after drawing text
+    });
+  }
 }
