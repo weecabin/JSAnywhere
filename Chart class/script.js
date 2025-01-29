@@ -15,15 +15,15 @@ class LineChart {
 
     // Zoom and pan state
     this.view = { minX: this.minX, maxX: this.maxX, minY: this.minY, maxY: this.maxY };
-    this.panType = {cursor:"cursor",series:"series"};
-    this.pan = {active:false, type:this.panType.series, start:null};
+    this.panType = { cursor: "cursor", series: "series" };
+    this.pan = { active: false, type: this.panType.series, start: null };
     this.startPinchDistance = null;
     this.startView = null;
 
     // Auto-scale state
     this.autoScale = true;
 
-    this.cursor = { active: false, x: null }; // Track cursor state
+    this.cursor = { active: false, worldX: null , screenX:null}; // Track cursor state
 
     // Pause datapoint updates
     this.pause = false;
@@ -45,7 +45,6 @@ class LineChart {
 
   addSeries(name, color) {
     if (this.series[name]) {
-      console.error(`Series "${name}" already exists.`);
       return;
     }
     this.series[name] = { color, data: [] };
@@ -54,7 +53,6 @@ class LineChart {
   addPoint(seriesName, x, y) {
     if (this.pause) return;
     if (!this.series[seriesName]) {
-      console.error(`Series "${seriesName}" does not exist.`);
       return;
     }
 
@@ -89,7 +87,6 @@ class LineChart {
 
   zoomFit() {
     this.zoomX.checked = true;
-    console.log("In zoomFit");
     this.view.minX = this.minX;
     this.view.maxX = this.maxX;
     this.view.minY = this.minY;
@@ -109,13 +106,44 @@ class LineChart {
     this.margin.left = widestLabel + 10; // Add padding
   }
 
-  // Call this before rendering
+  worldToScreenX(worldX) {
+    const { left, right } = this.margin;
+    return left + (worldX - this.view.minX) * this.xScale;
+  }
 
+  screenToWorldX(screenX) {
+    const { left, right } = this.margin;
+    return this.view.minX + (screenX - left) / this.xScale;
+  }
+
+  worldToScreenY(worldY) {
+    const { top, bottom } = this.margin;
+    return this.height - bottom - (worldY - this.view.minY) * this.yScale;
+  }
+
+  screenToWorldY(screenY) {
+    const { top, bottom } = this.margin;
+    return this.view.minY + (this.height - bottom - screenY) / this.yScale;
+  }
+
+  //canvas units per unit data
+  get xScale(){ 
+    const { left, right } = this.margin;
+    const rangeX = this.view.maxX - this.view.minX;
+    return rangeX !== 0 ? (this.width - left - right) / rangeX : 1;
+  }
+
+  //canvas units per unit data
+  get yScale(){
+    const { top, bottom } = this.margin;
+    const rangeY = this.view.maxY - this.view.minY;
+    return rangeY !== 0 ? (this.height - top - bottom) / rangeY : 1;
+  }
+  // Call this before rendering
   prepareRender() {
     if (this.yAxisDirty) {
       this.calculateMargin();
       this.yAxisDirty = false;
-      //console.log("yAxisDirty: "+ (++this.dirtyCount).toString());
     }
     this.render();
   }
@@ -139,12 +167,10 @@ class LineChart {
     ctx.restore();
 
     // Draw cursor
-    if (this.cursor.active && this.cursor.x !== null) {
+    if (this.cursor.active && this.cursor.screenX !== null) {
       this.drawCursor(ctx);
     }
   }
-
-  
 
   drawAxes(ctx) {
     let { top, right, bottom, left } = this.margin;
@@ -178,7 +204,7 @@ class LineChart {
       const xValue = this.view.minX + i * xStep;
 
       // Map the X value to its screen position
-      const xPos = left + ((xValue - this.view.minX) / xRange) * (this.width - left - right);
+      const xPos = this.worldToScreenX(xValue);
 
       // Round the X value to the nearest integer for simplicity
       const formattedXValue = xValue.toFixed(2);
@@ -209,7 +235,7 @@ class LineChart {
 
       // Map the Y value to its screen position
       let yPos = 0;
-      if (yRange != 0) yPos = this.height - bottom - ((yValue - this.view.minY) / yRange) * (this.height - top - bottom);
+      if (yRange != 0) yPos = this.worldToScreenY(yValue);
       else yPos = this.height - bottom;
 
       // Round the Y value to 2 decimal places for precision
@@ -230,16 +256,14 @@ class LineChart {
 
   drawSeries(ctx, series) {
     const { top, right, bottom, left } = this.margin;
-    const xScale = (this.width - left - right) / (this.view.maxX - this.view.minX || 1);
-    const yScale = (this.height - top - bottom) / (this.view.maxY - this.view.minY || 1);
 
     ctx.strokeStyle = series.color;
     ctx.beginPath();
 
     series.data.forEach((point, index) => {
-      const x = left + (point.x - this.view.minX) * xScale;
-      const y = this.height - bottom - (point.y - this.view.minY) * yScale;
-
+      // convert from data units to pixels
+      const x = this.worldToScreenX(point.x);
+      const y = this.worldToScreenY(point.y);
       if (index === 0) {
         ctx.moveTo(x, y);
       } else {
@@ -257,11 +281,11 @@ class LineChart {
       this.pan.active = true;
       const xtouch = event.touches[0].clientX;
       const rect = this.container.getBoundingClientRect();
-      if(this.cursor.active && Math.abs(this.cursor.x-xtouch+rect.left)< 25){
+      if (this.cursor.active && Math.abs(this.cursor.screenX - xtouch + rect.left) < 25) {
         this.pan.type = this.panType.cursor;
-      }else{
+      } else {
         this.pan.type = this.panType.series;
-      }   
+      }
       this.pan.start = { x: xtouch, y: event.touches[0].clientY };
     } else if (event.touches.length === 2) {
       // Start pinch zoom
@@ -271,7 +295,9 @@ class LineChart {
     }
   }
 
-  dbg(txt){document.getElementById("debug").innerHTML += txt +"\n";}
+  dbg(txt) {
+    document.getElementById("debug").innerHTML += txt + "\n";
+  }
 
   handleTouchMove(event) {
     event.preventDefault();
@@ -279,22 +305,20 @@ class LineChart {
     if (this.pan.active && event.touches.length === 1) {
       // Handle panning
       const xtouch = event.touches[0].clientX;
-      const ytouch = event.touches[0].clientY
+      const ytouch = event.touches[0].clientY;
       const dx = xtouch - this.pan.start.x;
       const dy = ytouch - this.pan.start.y;
       const { top, right, bottom, left } = this.margin;
-      const rect = this.container.getBoundingClientRect();
-      if(this.cursor.active && this.pan.type == this.panType.cursor){
-        this.cursor.x += dx;
-      }
-      else{
-      const xScale = (this.view.maxX - this.view.minX) / (this.width - left - right);
-      const yScale = (this.view.maxY - this.view.minY) / (this.height - top - bottom);
-
-      this.view.minX -= dx * xScale;
-      this.view.maxX -= dx * xScale;
-      this.view.minY += dy * yScale;
-      this.view.maxY += dy * yScale;
+      // handle cursor move
+      if (this.cursor.active && this.pan.type == this.panType.cursor) {
+        this.cursor.screenX += dx;
+      } else { // moving the series data
+        // convert from pixels to data units
+        // currently leaves the cursor alone
+        this.view.minX -= dx / this.xScale;
+        this.view.maxX -= dx / this.xScale;
+        this.view.minY += dy / this.yScale;
+        this.view.maxY += dy / this.yScale;
       }
       this.pan.start = { x: xtouch, y: ytouch };
       this.render();
@@ -326,6 +350,11 @@ class LineChart {
     this.pan.active = false;
     this.startPinchDistance = null;
     this.startView = null;
+    if(this.cursor.active){
+      this.cursor.worldX = this.screenToWorldX(this.cursor.screenX);
+      console.log("cursor", this.cursor);
+      console.log("this.view",this.view);
+    }
   }
 
   getPinchDistance(touches) {
@@ -374,7 +403,8 @@ class LineChart {
       cursorButton.textContent = this.cursor.active ? "Disable Cursor" : "Enable Cursor";
       if (this.cursor.active) {
         const canvasCenterX = (this.width - this.margin.left - this.margin.right) / 2 + this.margin.left;
-        this.cursor.x = canvasCenterX;
+        this.cursor.screenX = canvasCenterX;
+        this.cursor.worldX = this.screenToWorldX(this.cursor.screenX);
       }
       this.render(); // Re-render the chart
     });
@@ -429,15 +459,15 @@ class LineChart {
 
   drawCursor(ctx) {
     const { left, top } = this.margin;
-
     // Calculate x value
-    const xValue = this.view.minX + ((this.cursor.x - left) / (this.width - left - this.margin.right)) * (this.view.maxX - this.view.minX);
+    this.cursor.worldX = this.screenToWorldX(this.cursor.screenX);
+    const xValue = this.cursor.worldX;
 
     // Draw the vertical line
     ctx.strokeStyle = "red";
     ctx.beginPath();
-    ctx.moveTo(this.cursor.x, top);
-    ctx.lineTo(this.cursor.x, this.height - this.margin.bottom);
+    ctx.moveTo(this.cursor.screenX, top);
+    ctx.lineTo(this.cursor.screenX, this.height - this.margin.bottom);
     ctx.stroke();
 
     // Prepare text segments
@@ -468,14 +498,12 @@ class LineChart {
 
       if (index > 0) {
         ctx.fillStyle = "black";
-        console.log("divider x:", currentX);
         ctx.fillText(divider, currentX, textY);
         currentX += ctx.measureText(divider).width + padding; // Increment currentX after drawing divider
       }
 
       // Draw the text segment
       ctx.fillStyle = segment.color;
-      console.log(segment.text, currentX);
       ctx.fillText(segment.text, currentX, textY);
       currentX += ctx.measureText(segment.text).width + padding; // Increment currentX after drawing text
     });
