@@ -7,14 +7,16 @@ class LineChart {
     this.width = width;
     this.height = height;
     this.margin = { top: 20, right: 20, bottom: 20, left: 40 };
-    this.series = {};
-    this.minX = Infinity;
-    this.maxX = -Infinity;
-    this.minY = Infinity;
-    this.maxY = -Infinity;
+    this.plots = {
+      series:{},
+      minX:Infinity,
+      maxX:-Infinity,
+      minY:Infinity,
+      maxY:-Infinity
+    }
 
     // Zoom and pan state
-    this.view = { minX: this.minX, maxX: this.maxX, minY: this.minY, maxY: this.maxY };
+    this.view = { minX: this.plots.minX, maxX: this.plots.maxX, minY: this.plots.minY, maxY: this.plots.maxY };
     this.panType = { cursor: "cursor", series: "series" };
     this.pan = { active: false, type: this.panType.series, start: null };
     this.startPinchDistance = null;
@@ -44,42 +46,42 @@ class LineChart {
   }
 
   addSeries(name, color) {
-    if (this.series[name]) {
+    if (this.plots.series[name]) {
       return;
     }
-    this.series[name] = { color, data: [] };
+    this.plots.series[name] = { color, data: [] };
   }
 
   addPoint(seriesName, x, y) {
     if (this.pause) return;
-    if (!this.series[seriesName]) {
+    if (!this.plots.series[seriesName]) {
       return;
     }
 
-    const series = this.series[seriesName];
+    const series = this.plots.series[seriesName];
     series.data.push({ x, y });
 
     // Check if minY or maxY has changed
-    const prevMinY = this.minY;
-    const prevMaxY = this.maxY;
+    const prevMinY = this.plots.minY;
+    const prevMaxY = this.plots.maxY;
 
     // Update chart bounds
-    this.minX = Math.min(this.minX, x);
-    this.maxX = Math.max(this.maxX, x);
-    this.minY = Math.min(this.minY, y);
-    this.maxY = Math.max(this.maxY, y);
+    this.plots.minX = Math.min(this.plots.minX, x);
+    this.plots.maxX = Math.max(this.plots.maxX, x);
+    this.plots.minY = Math.min(this.plots.minY, y);
+    this.plots.maxY = Math.max(this.plots.maxY, y);
 
     // Set dirty flag if bounds have changed
-    if (this.minY !== prevMinY || this.maxY !== prevMaxY) {
+    if (this.plots.minY !== prevMinY || this.plots.maxY !== prevMaxY) {
       this.yAxisDirty = true;
     }
 
     // Adjust view bounds if auto-scale is enabled
     if (this.autoScale) {
-      this.view.minX = this.minX;
-      this.view.maxX = this.maxX;
-      this.view.minY = this.minY;
-      this.view.maxY = this.maxY;
+      this.view.minX = this.plots.minX;
+      this.view.maxX = this.plots.maxX;
+      this.view.minY = this.plots.minY;
+      this.view.maxY = this.plots.maxY;
     }
 
     this.prepareRender();
@@ -87,10 +89,10 @@ class LineChart {
 
   zoomFit() {
     this.zoomX.checked = true;
-    this.view.minX = this.minX;
-    this.view.maxX = this.maxX;
-    this.view.minY = this.minY;
-    this.view.maxY = this.maxY;
+    this.view.minX = this.plots.minX;
+    this.view.maxX = this.plots.maxX;
+    this.view.minY = this.plots.minY;
+    this.view.maxY = this.plots.maxY;
     this.prepareRender();
   }
 
@@ -161,8 +163,8 @@ class LineChart {
     ctx.rect(this.margin.left, this.margin.bottom, this.canvas.width - this.margin.left - this.margin.right, this.canvas.height - this.margin.bottom - this.margin.top);
     ctx.clip();
     // Draw each series
-    Object.keys(this.series).forEach((name) => {
-      this.drawSeries(ctx, this.series[name]);
+    Object.keys(this.plots.series).forEach((name) => {
+      this.drawSeries(ctx, this.plots.series[name]);
     });
     ctx.restore();
 
@@ -386,11 +388,11 @@ class LineChart {
     clearbutton.textContent = "Clear";
     clearbutton.addEventListener("click", () => {
       this.pause = true;
-      Object.values(this.series).forEach((series) => (series.data = []));
-      this.minX = Infinity;
-      this.maxX = -Infinity;
-      this.minY = Infinity;
-      this.maxY = -Infinity;
+      Object.values(this.plots.series).forEach((series) => (series.data = []));
+      this.plots.minX = Infinity;
+      this.plots.maxX = -Infinity;
+      this.plots.minY = Infinity;
+      this.plots.maxY = -Infinity;
       this.pause = false;
     });
     this.cmdcontainer.appendChild(clearbutton);
@@ -474,8 +476,8 @@ class LineChart {
     const segments = [];
     segments.push({ text: `x: ${xValue.toFixed(2)}`, color: "black" });
 
-    Object.keys(this.series).forEach((name) => {
-      const series = this.series[name];
+    Object.keys(this.plots.series).forEach((name) => {
+      const series = this.plots.series[name];
       if (series.data.length === 0) return;
 
       const closestPoint = series.data.reduce((prev, curr) => (Math.abs(curr.x - xValue) < Math.abs(prev.x - xValue) ? curr : prev));
