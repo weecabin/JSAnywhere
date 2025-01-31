@@ -47,7 +47,11 @@ class LineChart {
 
     this.addControls(containerId, commandsId);
   }
-
+  
+  get(element){
+	  return document.getElementById(element);
+  }
+  
   addSeries(name, color) {
     if (this.plots.series[name]) {
       return;
@@ -381,25 +385,44 @@ class LineChart {
   }
 
   addControls(containerId, commandsId) {
-    // Add auto-scale toggle button
-    const button = document.createElement("button");
-    button.textContent = "Toggle Auto-Scale";
+    this.addAutoScaleButton();
+
+	this.addZoomFitButton();
+	
+	this.addZoomControls(commandsId);
+
+    this.addClearButton();
+	
+    this.cmdcontainer.appendChild(document.createElement("br"));
+	
+	this.addCursorControl(this.cursor1);
+	
+	this.addCursorControl(this.cursor2);
+	
+	this.addMoveCursorControl();
+  }
+  
+  addAutoScaleButton(){
+	const button = document.createElement("button");
+    button.textContent = "Disable Auto-Scale";
     button.addEventListener("click", () => {
       this.autoScale = !this.autoScale;
       button.textContent = this.autoScale ? "Disable Auto-Scale" : "Enable Auto-Scale";
     });
     this.cmdcontainer.appendChild(button);
-
-    // Add zoom all button
-    const zoomFitButton = document.createElement("button");
+  }
+  
+  addZoomFitButton(){
+	const zoomFitButton = document.createElement("button");
     zoomFitButton.textContent = "Zoom Fit";
     zoomFitButton.addEventListener("click", () => {
       this.zoomFit();
     });
     this.cmdcontainer.appendChild(zoomFitButton);
-
-    // Add clear button
-    const clearbutton = document.createElement("button");
+  }
+  
+  addClearButton(){
+	 const clearbutton = document.createElement("button");
     clearbutton.textContent = "Clear";
     clearbutton.addEventListener("click", () => {
       this.pause = true;
@@ -411,13 +434,10 @@ class LineChart {
       this.pause = false;
     });
     this.cmdcontainer.appendChild(clearbutton);
-
-    // Add Cursor on/off button
-	this.addCursorControl(this.cursor1);
-	this.addCursorControl(this.cursor2);
-    
-    // Add zoom controls
-    const options = [
+  }
+  
+  addZoomControls(commandsId){
+	const options = [
       { value: "X", text: "X only", id: "zoomX" },
       { value: "Y", text: "Y Only", id: "zoomY" },
       { value: "XY", text: "X&Y", id: "zoomXY" },
@@ -433,7 +453,7 @@ class LineChart {
 	  // Add Cursor on/off button
 	const name = cursor.name;
     const cursorButton = document.createElement("button");
-    cursorButton.textContent = `Toggle ${name}`;
+    cursorButton.textContent = `Enable ${name}`;
     cursorButton.addEventListener("click", () => {
       cursor.active = !cursor.active;
       cursorButton.textContent = cursor.active ? `Disable ${name}` : `Enable ${name}`;
@@ -446,6 +466,88 @@ class LineChart {
     });
     this.cmdcontainer.appendChild(cursorButton);
   }
+  
+  addMoveCursorControl(){
+	const span = document.createElement("span");
+	span.classList.add(["moveCursor"]);
+	this.createSelect({options: [
+        { value: "Sin", text: "Sin", selected: true},
+        { value: "Cos", text: "Cos" }],id:"moveCursor",parent: span,
+    });
+	const button = document.createElement("button");
+	span.appendChild(button);
+    button.textContent = "NextPeak";
+    button.addEventListener("click", () => {
+		if(this.cursor1.active){
+			const peak = this.NextPeak(this.plots.series[this.get("moveCursor").value].data,this.cursor1.worldX);
+			if (peak){
+				console.log(this.cursor1);
+				this.cursor1.screenX = this.worldToScreenX(peak.x);
+				this.prepareRender();
+			}
+		}
+    });
+    this.cmdcontainer.appendChild(span);
+  }
+  
+  // points = [{x:xval,y:yval},...]
+  // startX = the xVal to start search from
+  NextPeak(points,startX){
+  let j;
+  for(j = 0;j  < points.length;j++){
+    if (points[j].x>startX){
+      const type = {up:"up",down:"down",flat:"flat"};
+      let lastState = type.down;
+      let state = type.down;
+      for (let i = j+1; i < points.length - 1; i++) {
+        if (points[i].y > points[i-1].y){
+          state = type.up;
+          lastState = type.up;
+        }else if(points[i].y == points[i-1].y){
+          state = type.flat;
+          // dont change lastState if flat
+        }else if (points[i].y < points[i-1].y){
+          if (lastState == type.up){
+            return points[i-1];
+          }
+        }
+      } 
+    }
+  }
+  return null;
+  }
+
+  /* createSelect 
+  Example Usage with Named Parameters:
+  this.createSelect({
+    options: [
+        { value: "1", text: "Option 1" },
+        { value: "2", text: "Option 2", selected: true }
+    ],
+    parent: document.body,
+    name: "selectionName"
+  });
+*/
+  createSelect({ options, parent, id = "", name = "", classList = [], onChange = null }) {
+    let select = document.createElement("select");
+    if (id) select.id = id;
+    if (name) select.name = name;
+    classList.forEach(cls => select.classList.add(cls));
+
+    options.forEach(({ value, text, selected = false }) => {
+        let option = document.createElement("option");
+        option.value = value;
+        option.textContent = text;
+        if (selected) option.selected = true;
+        select.appendChild(option);
+    });
+
+    if (onChange) select.addEventListener("change", (event) => onChange(event.target.value));
+
+    if (parent) parent.appendChild(select);
+
+    return select;
+}
   
   createRadioButtonGroup(options, groupName, containerId) {
     const container = document.getElementById(containerId);
