@@ -6,7 +6,9 @@ class LineChart {
     this.dirtyCount = 0;
     this.width = width;
     this.height = height;
+	// specify the margin of the plot area
     this.margin = { top: 40, right: 20, bottom: 20, left: 40 };
+	// this is the object that holds all the plot data
     this.plots = {
       series:{},
       minX:Infinity,
@@ -15,7 +17,6 @@ class LineChart {
       maxY:-Infinity
     }
 
-	
     // Zoom and pan state
     this.view = { minX: this.plots.minX, maxX: this.plots.maxX, minY: this.plots.minY, maxY: this.plots.maxY };
     this.panType = { cursor1: "cursor1", cursor2:"cursor2", series: "series" };
@@ -481,32 +482,39 @@ class LineChart {
   }
 
   drawCursor(ctx,cursor) {
+	const cursor2alone = !this.cursor1.active && this.cursor2.active;
     const { left, top } = this.margin;
     // Calculate x value
     cursor.worldX = this.screenToWorldX(cursor.screenX);
     const xValue = cursor.worldX;
 
     // Draw the vertical line
-    ctx.strokeStyle = "red";
+    ctx.strokeStyle = "black";
+	ctx.setLineDash([5, 5]); // Set dash pattern (5px dash, 5px gap)
     ctx.beginPath();
     ctx.moveTo(cursor.screenX, top);
     ctx.lineTo(cursor.screenX, this.height - this.margin.bottom);
     ctx.stroke();
-
+    ctx.setLineDash([]); 
+	
     // Prepare text segments
     const segments = [];
-	if (cursor==this.cursor1)
+	
+	// add the names
+	if (cursor==this.cursor1 || cursor2alone)
 	  segments.push({text: `${cursor.name} > `, color: "black" });
 	else
 	  segments.push({text:"c2 - c1  > ", color: "black" });
-	// print the x values
-	if (cursor==this.cursor1)
+	  
+	// add the x values
+	if (cursor==this.cursor1 || cursor2alone)
       segments.push({ text: `x: ${xValue.toFixed(2)}`, color: "black" });
 	else{
 		const dx = this.cursor2.worldX - this.cursor1.worldX;
 		segments.push({ text: `x: ${dx.toFixed(2)}`, color: "black" });
 	}
 
+	// add the series data for the current position
     Object.keys(this.plots.series).forEach((name) => {
       const series = this.plots.series[name];
       if (series.data.length === 0) return;
@@ -514,7 +522,7 @@ class LineChart {
       const closestPoint = series.data.reduce((prev, curr) => (Math.abs(curr.x - xValue) < Math.abs(prev.x - xValue) ? curr : prev));
       cursor.seriesData[name] = {"x":xValue,"y":closestPoint.y};
       if (closestPoint) {
-		if (cursor==this.cursor1)
+		if (cursor==this.cursor1 || cursor2alone)
           segments.push({ text: `${name}: ${closestPoint.y.toFixed(2)}`, color: series.color });
 		else{ 
 			const deltaY = this.cursor2.seriesData[name].y - this.cursor1.seriesData[name].y;
@@ -524,10 +532,10 @@ class LineChart {
     });
 
     // Render text segments with dividers
-	let textY = top - 30; // Position slightly above the top margin
+	let textY = top - 30; // Position for cursor1
 	if (cursor==this.cursor2)
-	  textY += 20;
-    let currentX = this.margin.left; // Start at a fixed position near the left edge
+	  textY += 20; // position for cursor2
+    let textX = this.margin.left; // Start at a fixed position near the left edge
     const divider = " | ";
     const padding = 5; // Padding between elements
 
@@ -537,10 +545,10 @@ class LineChart {
     segments.forEach((segment, index) => {
       // Draw the divider first (except for the first element)
       if (index > 0)
-		currentX = this.addCursorText(ctx,currentX,textY,"black",divider,padding);
+		textX = this.addCursorText(ctx,textX,textY,"black",divider,padding);
 
       // Draw the text segment
-	  currentX = this.addCursorText(ctx,currentX,textY,segment.color,segment.text,padding);
+	  textX = this.addCursorText(ctx,textX,textY,segment.color,segment.text,padding);
     });
   }
   
