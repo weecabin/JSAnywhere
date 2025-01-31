@@ -57,6 +57,8 @@ class LineChart {
       return;
     }
     this.plots.series[name] = { color, data: [] };
+	this.populateSeriesSelect("selectPlotId1")
+	this.populateSeriesSelect("selectPlotId2")
   }
 
   addPoint(seriesName, x, y) {
@@ -369,12 +371,9 @@ class LineChart {
     this.startView = null;
     if(this.cursor1.active){
       this.cursor1.worldX = this.screenToWorldX(this.cursor1.screenX);
-	  console.log(this.cursor1);
     }
 	if(this.cursor2.active){
       this.cursor2.worldX = this.screenToWorldX(this.cursor2.screenX);
-	  console.log(this.cursor1);
-	  console.log(this.cursor2);
     }
   }
 
@@ -397,9 +396,11 @@ class LineChart {
 	
 	this.addCursorControl(this.cursor1);
 	
+	this.addMoveCursorControl(this.cursor1,"selectPlotId1","selectMinMax1");
+	
 	this.addCursorControl(this.cursor2);
 	
-	this.addMoveCursorControl();
+	this.addMoveCursorControl(this.cursor2,"selectPlotId2","selectMinMax2");
   }
   
   addAutoScaleButton(){
@@ -467,22 +468,24 @@ class LineChart {
     this.cmdcontainer.appendChild(cursorButton);
   }
   
-  addMoveCursorControl(){
+  addMoveCursorControl(cursor,selectPlotId,selectMinMaxId){
 	const span = document.createElement("span");
 	span.classList.add(["moveCursor"]);
-	this.createSelect({options: [
-        { value: "Sin", text: "Sin", selected: true},
-        { value: "Cos", text: "Cos" }],id:"moveCursor",parent: span,
+	this.createSelect({options:[],id:selectPlotId,parent: span,
     });
+	this.createSelect({options: [
+		{value:"Max",option:"Max"},
+		{value:"Min",option:"Min"}],id:selectMinMaxId,parent: span,});
 	const button = document.createElement("button");
 	span.appendChild(button);
-    button.textContent = "NextPeak";
+    button.textContent = "Next";
     button.addEventListener("click", () => {
-		if(this.cursor1.active){
-			const peak = this.NextPeak(this.plots.series[this.get("moveCursor").value].data,this.cursor1.worldX);
+		if(cursor.active){
+			const peak = this.NextPeak(this.plots.series[this.get(selectPlotId).value].data,
+			                           cursor.worldX,
+									   this.get(selectMinMaxId).value=="Max"?true:false);
 			if (peak){
-				console.log(this.cursor1);
-				this.cursor1.screenX = this.worldToScreenX(peak.x);
+				cursor.screenX = this.worldToScreenX(peak.x);
 				this.prepareRender();
 			}
 		}
@@ -490,30 +493,41 @@ class LineChart {
     this.cmdcontainer.appendChild(span);
   }
   
+  populateSeriesSelect(selectId) {
+    let select = document.getElementById(selectId);
+    select.innerHTML = ""; // Clear existing options
+    Object.keys(this.plots.series).forEach(seriesName => {
+        let option = document.createElement("option");
+        option.value = seriesName;
+        option.textContent = seriesName;
+        select.appendChild(option);
+    });
+  }
+
   // points = [{x:xval,y:yval},...]
   // startX = the xVal to start search from
-  NextPeak(points,startX){
+  NextPeak(points,startX,findPeak=true){
   let j;
   for(j = 0;j  < points.length;j++){
     if (points[j].x>startX){
-      const type = {up:"up",down:"down",flat:"flat"};
-      let lastState = type.down;
-      let state = type.down;
+      const type = {up:"up",down:"down"};
+      let lastState = findPeak?type.down:type.up;
       for (let i = j+1; i < points.length - 1; i++) {
-        if (points[i].y > points[i-1].y){
-          state = type.up;
-          lastState = type.up;
-        }else if(points[i].y == points[i-1].y){
-          state = type.flat;
-          // dont change lastState if flat
-        }else if (points[i].y < points[i-1].y){
-          if (lastState == type.up){
+        if (points[i].y > points[i-1].y){ // increasing
+		  if (lastState == type.down && !findPeak)
             return points[i-1];
-          }
+          lastState = type.up;
+        }else if(points[i].y == points[i-1].y){ // flat section
+          // dont change lastState if flat
+        }else if (points[i].y < points[i-1].y){ // decreasing
+          if (lastState == type.up && findPeak)
+            return points[i-1];
+		  lastState = type.down;
         }
       } 
     }
   }
+  console.log("no max or min found");
   return null;
   }
 
