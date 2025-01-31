@@ -10,7 +10,7 @@ input{
   margin:10px;
 } 
 
-.radio-group, button {
+.radio-group, .moveCursor, button {
   font-size: 1em;
   color:black;
   border: 1px solid #ccc;
@@ -20,9 +20,10 @@ input{
   margin-left:10px;
 }
 
-.radio-group span {
+.radio-group span , .moveCursor span{
     font-weight: bold;
     margin-bottom: 4px;
+	height: 20px;
 }
 
 .radio-group input {
@@ -31,5 +32,27 @@ input{
 
 button{
   font-size:.9em;
+}
+
+.moveCursor select,
+.moveCursor button {
+    outline: none; /* Remove the focus outline */
+    border: none;  /* Remove borders */
+    background: transparent; /* Remove background color */
+    padding: 0; /* Remove padding */
+    margin: 0; /* Remove margin */
+    box-shadow: none; /* Remove shadow styles */
+    font: inherit; /* Ensure font matches the parent span */
+    cursor: pointer; /* Ensure it still looks interactive */
+}
+
+.moveCursor select{
+	padding: 0 10px 0 0;
+}
+
+.moveCursor {
+    display: inline-flex; /* Align items in a row */
+    gap: 5px; /* Optional spacing between select and button */
+    align-items: center; /* Vertically align items */
 }
 
