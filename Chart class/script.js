@@ -6,7 +6,7 @@ class LineChart {
     this.dirtyCount = 0;
     this.width = width;
     this.height = height;
-    this.margin = { top: 20, right: 20, bottom: 20, left: 40 };
+    this.margin = { top: 40, right: 20, bottom: 20, left: 40 };
     this.plots = {
       series:{},
       minX:Infinity,
@@ -15,9 +15,10 @@ class LineChart {
       maxY:-Infinity
     }
 
+	
     // Zoom and pan state
     this.view = { minX: this.plots.minX, maxX: this.plots.maxX, minY: this.plots.minY, maxY: this.plots.maxY };
-    this.panType = { cursor: "cursor", series: "series" };
+    this.panType = { cursor1: "cursor1", cursor2:"cursor2", series: "series" };
     this.pan = { active: false, type: this.panType.series, start: null };
     this.startPinchDistance = null;
     this.startView = null;
@@ -25,8 +26,9 @@ class LineChart {
     // Auto-scale state
     this.autoScale = true;
 
-    this.cursor = { active: false, worldX: null , screenX:null}; // Track cursor state
-
+    this.cursor1 = {name:"Cursor1", active: false, worldX: null , screenX:null, seriesData:{}}; // Track cursor state
+    this.cursor2 = {name:"Cursor2", active: false, worldX: null , screenX:null, seriesData:{}}; // Track cursor state
+	
     // Pause datapoint updates
     this.pause = false;
 
@@ -160,7 +162,7 @@ class LineChart {
     // Save the context and clip the drawing area for the plot
     ctx.save();
     ctx.beginPath();
-    ctx.rect(this.margin.left, this.margin.bottom, this.canvas.width - this.margin.left - this.margin.right, this.canvas.height - this.margin.bottom - this.margin.top);
+    ctx.rect(this.margin.left, this.margin.top, this.canvas.width - this.margin.left - this.margin.right, this.canvas.height - this.margin.bottom - this.margin.top);
     ctx.clip();
     // Draw each series
     Object.keys(this.plots.series).forEach((name) => {
@@ -169,9 +171,13 @@ class LineChart {
     ctx.restore();
 
     // Draw cursor
-    if (this.cursor.active && this.cursor.screenX !== null) {
-      this.drawCursor(ctx);
+    if (this.cursor1.active && this.cursor1.screenX !== null) {
+      this.drawCursor(this.context, this.cursor1);
     }
+	if (this.cursor2.active && this.cursor2.screenX !== null) {
+      this.drawCursor(this.context, this.cursor2);
+    }
+		
   }
 
   drawAxes(ctx) {
@@ -283,8 +289,10 @@ class LineChart {
       this.pan.active = true;
       const xtouch = event.touches[0].clientX;
       const rect = this.container.getBoundingClientRect();
-      if (this.cursor.active && Math.abs(this.cursor.screenX - xtouch + rect.left) < 25) {
-        this.pan.type = this.panType.cursor;
+      if (this.cursor1.active && Math.abs(this.cursor1.screenX - xtouch + rect.left) < 25) {
+        this.pan.type = this.panType.cursor1;
+	  }else if (this.cursor2.active && Math.abs(this.cursor2.screenX - xtouch + rect.left) < 25) {
+        this.pan.type = this.panType.cursor2;
       } else {
         this.pan.type = this.panType.series;
       }
@@ -312,8 +320,10 @@ class LineChart {
       const dy = ytouch - this.pan.start.y;
       const { top, right, bottom, left } = this.margin;
       // handle cursor move
-      if (this.cursor.active && this.pan.type == this.panType.cursor) {
-        this.cursor.screenX += dx;
+      if (this.cursor1.active && this.pan.type == this.panType.cursor1) {
+        this.cursor1.screenX += dx;
+	  }else if (this.cursor2.active && this.pan.type == this.panType.cursor2) {
+        this.cursor2.screenX += dx;
       } else { // moving the series data
         // convert from pixels to data units
         // currently leaves the cursor alone
@@ -352,10 +362,14 @@ class LineChart {
     this.pan.active = false;
     this.startPinchDistance = null;
     this.startView = null;
-    if(this.cursor.active){
-      this.cursor.worldX = this.screenToWorldX(this.cursor.screenX);
-      console.log("cursor", this.cursor);
-      console.log("this.view",this.view);
+    if(this.cursor1.active){
+      this.cursor1.worldX = this.screenToWorldX(this.cursor1.screenX);
+	  console.log(this.cursor1);
+    }
+	if(this.cursor2.active){
+      this.cursor2.worldX = this.screenToWorldX(this.cursor2.screenX);
+	  console.log(this.cursor1);
+	  console.log(this.cursor2);
     }
   }
 
@@ -398,20 +412,9 @@ class LineChart {
     this.cmdcontainer.appendChild(clearbutton);
 
     // Add Cursor on/off button
-    const cursorButton = document.createElement("button");
-    cursorButton.textContent = "Toggle Cursor";
-    cursorButton.addEventListener("click", () => {
-      this.cursor.active = !this.cursor.active;
-      cursorButton.textContent = this.cursor.active ? "Disable Cursor" : "Enable Cursor";
-      if (this.cursor.active) {
-        const canvasCenterX = (this.width - this.margin.left - this.margin.right) / 2 + this.margin.left;
-        this.cursor.screenX = canvasCenterX;
-        this.cursor.worldX = this.screenToWorldX(this.cursor.screenX);
-      }
-      this.render(); // Re-render the chart
-    });
-    this.cmdcontainer.appendChild(cursorButton);
-
+	this.addCursorControl(this.cursor1);
+	this.addCursorControl(this.cursor2);
+    
     // Add zoom controls
     const options = [
       { value: "X", text: "X only", id: "zoomX" },
@@ -424,7 +427,25 @@ class LineChart {
     this.zoomXY = document.getElementById("zoomXY");
     this.zoomX.checked = true;
   }
-
+  
+  addCursorControl(cursor){
+	  // Add Cursor on/off button
+	const name = cursor.name;
+    const cursorButton = document.createElement("button");
+    cursorButton.textContent = `Toggle ${name}`;
+    cursorButton.addEventListener("click", () => {
+      cursor.active = !cursor.active;
+      cursorButton.textContent = cursor.active ? `Disable ${name}` : `Enable ${name}`;
+      if (cursor.active) {
+        const canvasCenterX = (this.width - this.margin.left - this.margin.right) / 2 + this.margin.left;
+        cursor.screenX = canvasCenterX;
+        cursor.worldX = this.screenToWorldX(this.cursor1.screenX);
+      }
+      this.render(); // Re-render the chart
+    });
+    this.cmdcontainer.appendChild(cursorButton);
+  }
+  
   createRadioButtonGroup(options, groupName, containerId) {
     const container = document.getElementById(containerId);
 
@@ -459,55 +480,74 @@ class LineChart {
     container.appendChild(groupSpan);
   }
 
-  drawCursor(ctx) {
+  drawCursor(ctx,cursor) {
     const { left, top } = this.margin;
     // Calculate x value
-    this.cursor.worldX = this.screenToWorldX(this.cursor.screenX);
-    const xValue = this.cursor.worldX;
+    cursor.worldX = this.screenToWorldX(cursor.screenX);
+    const xValue = cursor.worldX;
 
     // Draw the vertical line
     ctx.strokeStyle = "red";
     ctx.beginPath();
-    ctx.moveTo(this.cursor.screenX, top);
-    ctx.lineTo(this.cursor.screenX, this.height - this.margin.bottom);
+    ctx.moveTo(cursor.screenX, top);
+    ctx.lineTo(cursor.screenX, this.height - this.margin.bottom);
     ctx.stroke();
 
     // Prepare text segments
     const segments = [];
-    segments.push({ text: `x: ${xValue.toFixed(2)}`, color: "black" });
+	if (cursor==this.cursor1)
+	  segments.push({text: `${cursor.name} > `, color: "black" });
+	else
+	  segments.push({text:"c2 - c1  > ", color: "black" });
+	// print the x values
+	if (cursor==this.cursor1)
+      segments.push({ text: `x: ${xValue.toFixed(2)}`, color: "black" });
+	else{
+		const dx = this.cursor2.worldX - this.cursor1.worldX;
+		segments.push({ text: `x: ${dx.toFixed(2)}`, color: "black" });
+	}
 
     Object.keys(this.plots.series).forEach((name) => {
       const series = this.plots.series[name];
       if (series.data.length === 0) return;
 
       const closestPoint = series.data.reduce((prev, curr) => (Math.abs(curr.x - xValue) < Math.abs(prev.x - xValue) ? curr : prev));
-
+      cursor.seriesData[name] = {"x":xValue,"y":closestPoint.y};
       if (closestPoint) {
-        segments.push({ text: `${name}: ${closestPoint.y.toFixed(2)}`, color: series.color });
+		if (cursor==this.cursor1)
+          segments.push({ text: `${name}: ${closestPoint.y.toFixed(2)}`, color: series.color });
+		else{ 
+			const deltaY = this.cursor2.seriesData[name].y - this.cursor1.seriesData[name].y;
+			segments.push({ text: `${name}: ${deltaY.toFixed(2)}`, color: series.color });
+		}
       }
     });
 
     // Render text segments with dividers
-    const textY = top - 10; // Position slightly above the top margin
+	let textY = top - 30; // Position slightly above the top margin
+	if (cursor==this.cursor2)
+	  textY += 20;
     let currentX = this.margin.left; // Start at a fixed position near the left edge
     const divider = " | ";
     const padding = 5; // Padding between elements
 
     ctx.font = "12px Arial";
     ctx.textAlign = "left"; // Make sure text is aligned from the left edge
+	
     segments.forEach((segment, index) => {
       // Draw the divider first (except for the first element)
-
-      if (index > 0) {
-        ctx.fillStyle = "black";
-        ctx.fillText(divider, currentX, textY);
-        currentX += ctx.measureText(divider).width + padding; // Increment currentX after drawing divider
-      }
+      if (index > 0)
+		currentX = this.addCursorText(ctx,currentX,textY,"black",divider,padding);
 
       // Draw the text segment
-      ctx.fillStyle = segment.color;
-      ctx.fillText(segment.text, currentX, textY);
-      currentX += ctx.measureText(segment.text).width + padding; // Increment currentX after drawing text
+	  currentX = this.addCursorText(ctx,currentX,textY,segment.color,segment.text,padding);
     });
+  }
+  
+  addCursorText(ctx,x,y,color,text,padding){
+	  ctx.fillStyle = color;
+      ctx.fillText(text, x, y);
+      x += ctx.measureText(text).width + padding; // Increment currentX after drawing text
+	  return x;
   }
 }
