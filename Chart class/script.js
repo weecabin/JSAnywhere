@@ -501,12 +501,7 @@ class LineChart {
   }
   
   addZoomFitButton(){
-	const zoomFitButton = document.createElement("button");
-    zoomFitButton.textContent = "Zoom Fit";
-    zoomFitButton.addEventListener("click", () => {
-      this.zoomFit();
-    });
-    this.cmdcontainer.appendChild(zoomFitButton);
+	addButton("Zoom Fit",()=>{this.zoomFit();},this.cmdcontainer.id);
   }
   
   addClearButton(){
@@ -523,7 +518,7 @@ class LineChart {
     });
     this.cmdcontainer.appendChild(clearbutton);
   }
-  
+
   addZoomControls(commandsId){
 	const options = [
       { value: "X", text: "X only", id: "zoomX" },
