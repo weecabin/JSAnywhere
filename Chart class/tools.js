@@ -90,6 +90,16 @@ function dbg(txt) {
     container.appendChild(groupSpan);
   }
   
+  // xValue = the xVal to find the index of
+  // points = [{x:xval,y:yval},...]
+  function IndexOf(xValue,points){
+	  for (i=0;i<points.length;i++){
+		  if (points[i].x>xValue)
+		    return i-1;
+	  }
+	  return null;
+  }
+  
   // points = [{x:xval,y:yval},...]
   // startX = the xVal to start search from
   function NextPeak(points,startX,findPeak=true){
@@ -147,7 +157,7 @@ function dbg(txt) {
   
   function addButton(text,eventHandler,containerId){
 	const button = document.createElement("button");
-    button.textContent = "Disable Auto-Scale";
+    button.textContent = text;
     button.addEventListener("click", eventHandler);
     get(containerId).appendChild(button);
   }
