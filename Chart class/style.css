@@ -46,8 +46,9 @@ button{
     cursor: pointer; /* Ensure it still looks interactive */
 }
 
+.moveCursor button,
 .moveCursor select{
-	padding: 0 10px 0 0;
+	padding: 0 0 0 10px;
 }
 
 .moveCursor {
@@ -55,4 +56,6 @@ button{
     gap: 5px; /* Optional spacing between select and button */
     align-items: center; /* Vertically align items */
 }
+
+
 
