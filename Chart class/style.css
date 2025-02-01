@@ -37,18 +37,16 @@ button{
 .moveCursor select,
 .moveCursor button {
     outline: none; /* Remove the focus outline */
-    border: none;  /* Remove borders */
+    /*border: none;  /* Remove borders */
     background: transparent; /* Remove background color */
-    padding: 0; /* Remove padding */
+    padding: 0 10px 0 10px;
     margin: 0; /* Remove margin */
     box-shadow: none; /* Remove shadow styles */
     font: inherit; /* Ensure font matches the parent span */
     cursor: pointer; /* Ensure it still looks interactive */
-}
-
-.moveCursor button,
-.moveCursor select{
-	padding: 0 0 0 10px;
+	border-radius: 10px;
+	border: 1px solid #ccc;
+	color:black;
 }
 
 .moveCursor {
@@ -56,6 +54,4 @@ button{
     gap: 5px; /* Optional spacing between select and button */
     align-items: center; /* Vertically align items */
 }
-
-
 
