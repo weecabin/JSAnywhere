@@ -4,8 +4,8 @@ function copyToClipboard(text) {
         .catch(err => console.error("Failed to copy:", err));
 }
 
-function get(element){
-	  return document.getElementById(element);
+function get(elementId){
+	  return document.getElementById(elementId);
   }
   
 function dbg(txt) {
@@ -22,6 +22,10 @@ function dbg(txt) {
     parent: document.body,
     name: "selectionName"
   });
+  if called from within an object, be sure to bind the onChange to the object
+  for example...
+  pass callBack like this... this.objCallback.bind(this)
+  or use arrow function... () => this.objCallback()
   */
   function createSelect({ options, parent, id = "", name = "", classList = [], onChange = null }) {
     let select = document.createElement("select");
@@ -113,6 +117,8 @@ function dbg(txt) {
   return null;
   }
   
+  // points = [{x:xval,y:yval},...]
+  // startX = the xVal to start search from
   function PrevPeak(points,startX,findPeak=true){
   let j;
   for(j = 0;j  < points.length;j++){
@@ -137,4 +143,11 @@ function dbg(txt) {
   }
   console.log("no max or min found");
   return null;
+  }
+  
+  function addButton(text,eventHandler,containerId){
+	const button = document.createElement("button");
+    button.textContent = "Disable Auto-Scale";
+    button.addEventListener("click", eventHandler);
+    get(containerId).appendChild(button);
   }
