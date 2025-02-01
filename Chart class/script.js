@@ -471,17 +471,32 @@ class LineChart {
   addMoveCursorControl(cursor,selectPlotId,selectMinMaxId){
 	const span = document.createElement("span");
 	span.classList.add(["moveCursor"]);
-	this.createSelect({options:[],id:selectPlotId,parent: span,
-    });
-	this.createSelect({options: [
-		{value:"Max",option:"Max"},
-		{value:"Min",option:"Min"}],id:selectMinMaxId,parent: span,});
-	const button = document.createElement("button");
+	this.createSelect({options:[],id:selectPlotId,parent: span,});
+	
+	this.createSelect({options:[
+		{value:"Max",text:"Max"},
+		{value:"Min",text:"Min"}],id:selectMinMaxId,parent: span,});
+		
+	let button = document.createElement("button");
 	span.appendChild(button);
     button.textContent = "Next";
     button.addEventListener("click", () => {
 		if(cursor.active){
 			const peak = this.NextPeak(this.plots.series[this.get(selectPlotId).value].data,
+			                           cursor.worldX,
+									   this.get(selectMinMaxId).value=="Max"?true:false);
+			if (peak){
+				cursor.screenX = this.worldToScreenX(peak.x);
+				this.prepareRender();
+			}
+		}
+    });
+    button = document.createElement("button");
+	span.appendChild(button);
+    button.textContent = "Prev";
+    button.addEventListener("click", () => {
+		if(cursor.active){
+			const peak = this.PrevPeak(this.plots.series[this.get(selectPlotId).value].data,
 			                           cursor.worldX,
 									   this.get(selectMinMaxId).value=="Max"?true:false);
 			if (peak){
@@ -530,6 +545,32 @@ class LineChart {
   console.log("no max or min found");
   return null;
   }
+  
+  PrevPeak(points,startX,findPeak=true){
+  let j;
+  for(j = 0;j  < points.length;j++){
+    if (points[j].x>startX){
+      const type = {up:"up",down:"down"};
+      let lastState = findPeak?type.down:type.up;
+      for (let i = j-2; i >= 0; i--) {
+        if (points[i].y > points[i+1].y){ // increasing
+		  if (lastState == type.down && !findPeak)
+            return points[i+1];
+          lastState = type.up;
+        }else if(points[i].y == points[i+1].y){ // flat section
+          // dont change lastState if flat
+        }else if (points[i].y < points[i+1].y){ // decreasing
+          if (lastState == type.up && findPeak){
+            return points[i+1];
+		  }
+		  lastState = type.down;
+        }
+      } 
+    }
+  }
+  console.log("no max or min found");
+  return null;
+  }
 
   /* createSelect 
   Example Usage with Named Parameters:
@@ -541,7 +582,7 @@ class LineChart {
     parent: document.body,
     name: "selectionName"
   });
-*/
+  */
   createSelect({ options, parent, id = "", name = "", classList = [], onChange = null }) {
     let select = document.createElement("select");
     if (id) select.id = id;
