@@ -48,10 +48,6 @@ class LineChart {
     this.addControls(containerId, commandsId);
   }
   
-  get(element){
-	  return document.getElementById(element);
-  }
-  
   addSeries(name, color) {
     if (this.plots.series[name]) {
       return;
@@ -61,6 +57,17 @@ class LineChart {
 	this.populateSeriesSelect("selectPlotId2")
   }
 
+  populateSeriesSelect(selectId) {
+    let select = document.getElementById(selectId);
+    select.innerHTML = ""; // Clear existing options
+    Object.keys(this.plots.series).forEach(seriesName => {
+        let option = document.createElement("option");
+        option.value = seriesName;
+        option.textContent = seriesName;
+        select.appendChild(option);
+    });
+  }
+  
   addPoint(seriesName, x, y) {
     if (this.pause) return;
     if (!this.plots.series[seriesName]) {
@@ -289,6 +296,85 @@ class LineChart {
     ctx.stroke();
   }
 
+  drawCursor(ctx,cursor) {
+	const cursor2alone = !this.cursor1.active && this.cursor2.active;
+    const { left, top } = this.margin;
+    // Calculate x value
+    //cursor.worldX = this.screenToWorldX(cursor.screenX);
+	cursor.screenX = this.worldToScreenX(cursor.worldX);
+    const xValue = cursor.worldX;
+
+    // Draw the vertical line
+    ctx.strokeStyle = "black";
+	ctx.setLineDash([5, 5]); // Set dash pattern (5px dash, 5px gap)
+    ctx.beginPath();
+    ctx.moveTo(cursor.screenX, top);
+    ctx.lineTo(cursor.screenX, this.height - this.margin.bottom);
+    ctx.stroke();
+    ctx.setLineDash([]); 
+	
+    // Prepare text segments
+    const segments = [];
+	
+	// add the names
+	if (cursor==this.cursor1 || cursor2alone)
+	  segments.push({text: `${cursor.name} > `, color: "black" });
+	else
+	  segments.push({text:"c2 - c1  > ", color: "black" });
+	  
+	// add the x values
+	if (cursor==this.cursor1 || cursor2alone)
+      segments.push({ text: `x: ${xValue.toFixed(2)}`, color: "black" });
+	else{
+		const dx = this.cursor2.worldX - this.cursor1.worldX;
+		segments.push({ text: `x: ${dx.toFixed(2)}`, color: "black" });
+	}
+
+	// add the series data for the current position
+    Object.keys(this.plots.series).forEach((name) => {
+      const series = this.plots.series[name];
+      if (series.data.length === 0) return;
+
+      const closestPoint = series.data.reduce((prev, curr) => (Math.abs(curr.x - xValue) < Math.abs(prev.x - xValue) ? curr : prev));
+      cursor.seriesData[name] = {"x":xValue,"y":closestPoint.y};
+      if (closestPoint) {
+		if (cursor==this.cursor1 || cursor2alone)
+          segments.push({ text: `${name}: ${closestPoint.y.toFixed(2)}`, color: series.color });
+		else{ 
+			const deltaY = this.cursor2.seriesData[name].y - this.cursor1.seriesData[name].y;
+			segments.push({ text: `${name}: ${deltaY.toFixed(2)}`, color: series.color });
+		}
+      }
+    });
+
+    // Render text segments with dividers
+	let textY = top - 30; // Position for cursor1
+	if (cursor==this.cursor2)
+	  textY += 20; // position for cursor2
+    let textX = this.margin.left; // Start at a fixed position near the left edge
+    const divider = " | ";
+    const padding = 5; // Padding between elements
+
+    ctx.font = "12px Arial";
+    ctx.textAlign = "left"; // Make sure text is aligned from the left edge
+	
+    segments.forEach((segment, index) => {
+      // Draw the divider first (except for the first element)
+      if (index > 0)
+		textX = this.addCursorText(ctx,textX,textY,"black",divider,padding);
+
+      // Draw the text segment
+	  textX = this.addCursorText(ctx,textX,textY,segment.color,segment.text,padding);
+    });
+  }
+  
+  addCursorText(ctx,x,y,color,text,padding){
+	  ctx.fillStyle = color;
+      ctx.fillText(text, x, y);
+      x += ctx.measureText(text).width + padding; // Increment currentX after drawing text
+	  return x;
+  
+  }
   // Touch Handlers
   handleTouchStart(event) {
     if (event.touches.length === 1) {
@@ -310,10 +396,6 @@ class LineChart {
       this.startPinchDistance = this.getPinchDistance(event.touches);
       this.startView = { ...this.view };
     }
-  }
-
-  dbg(txt) {
-    document.getElementById("debug").innerHTML += txt + "\n";
   }
 
   handleTouchMove(event) {
@@ -401,6 +483,8 @@ class LineChart {
 	
 	this.addMoveCursorControl(this.cursor1,"selectPlotId1","selectMinMax1");
 	
+	this.cmdcontainer.appendChild(document.createElement("br"));
+	
 	this.addCursorControl(this.cursor2);
 	
 	this.addMoveCursorControl(this.cursor2,"selectPlotId2","selectMinMax2");
@@ -446,7 +530,7 @@ class LineChart {
       { value: "Y", text: "Y Only", id: "zoomY" },
       { value: "XY", text: "X&Y", id: "zoomXY" },
     ];
-    this.createRadioButtonGroup(options, " Zoom:", commandsId);
+    createRadioButtonGroup(options, " Zoom:", commandsId);
     this.zoomX = document.getElementById("zoomX");
     this.zoomY = document.getElementById("zoomY");
     this.zoomXY = document.getElementById("zoomXY");
@@ -474,9 +558,9 @@ class LineChart {
   addMoveCursorControl(cursor,selectPlotId,selectMinMaxId){
 	const span = document.createElement("span");
 	span.classList.add(["moveCursor"]);
-	this.createSelect({options:[],id:selectPlotId,parent: span,});
+	createSelect({options:[],id:selectPlotId,parent: span,});
 	
-	this.createSelect({options:[
+	createSelect({options:[
 		{value:"Max",text:"Max"},
 		{value:"Min",text:"Min"}],id:selectMinMaxId,parent: span,});
 		
@@ -485,9 +569,9 @@ class LineChart {
     button.textContent = "Next";
     button.addEventListener("click", () => {
 		if(cursor.active){
-			const peak = this.NextPeak(this.plots.series[this.get(selectPlotId).value].data,
+			const peak = NextPeak(this.plots.series[get(selectPlotId).value].data,
 			                           cursor.worldX,
-									   this.get(selectMinMaxId).value=="Max"?true:false);
+									   get(selectMinMaxId).value=="Max"?true:false);
 			if (peak){
 				cursor.screenX = this.worldToScreenX(peak.x);
 				cursor.worldX = this.screenToWorldX(cursor.screenX);
@@ -500,9 +584,9 @@ class LineChart {
     button.textContent = "Prev";
     button.addEventListener("click", () => {
 		if(cursor.active){
-			const peak = this.PrevPeak(this.plots.series[this.get(selectPlotId).value].data,
+			const peak = PrevPeak(this.plots.series[get(selectPlotId).value].data,
 			                           cursor.worldX,
-									   this.get(selectMinMaxId).value=="Max"?true:false);
+									   get(selectMinMaxId).value=="Max"?true:false);
 			if (peak){
 				cursor.screenX = this.worldToScreenX(peak.x);
 				cursor.worldX = this.screenToWorldX(cursor.screenX);
@@ -513,212 +597,4 @@ class LineChart {
     this.cmdcontainer.appendChild(span);
   }
   
-  populateSeriesSelect(selectId) {
-    let select = document.getElementById(selectId);
-    select.innerHTML = ""; // Clear existing options
-    Object.keys(this.plots.series).forEach(seriesName => {
-        let option = document.createElement("option");
-        option.value = seriesName;
-        option.textContent = seriesName;
-        select.appendChild(option);
-    });
-  }
-
-  // points = [{x:xval,y:yval},...]
-  // startX = the xVal to start search from
-  NextPeak(points,startX,findPeak=true){
-  let j;
-  for(j = 0;j  < points.length;j++){
-    if (points[j].x>startX){
-      const type = {up:"up",down:"down"};
-      let lastState = findPeak?type.down:type.up;
-      for (let i = j+1; i < points.length - 1; i++) {
-        if (points[i].y > points[i-1].y){ // increasing
-		  if (lastState == type.down && !findPeak)
-            return points[i-1];
-          lastState = type.up;
-        }else if(points[i].y == points[i-1].y){ // flat section
-          // dont change lastState if flat
-        }else if (points[i].y < points[i-1].y){ // decreasing
-          if (lastState == type.up && findPeak)
-            return points[i-1];
-		  lastState = type.down;
-        }
-      } 
-    }
-  }
-  console.log("no max or min found");
-  return null;
-  }
-  
-  PrevPeak(points,startX,findPeak=true){
-  let j;
-  for(j = 0;j  < points.length;j++){
-    if (points[j].x>startX){
-      const type = {up:"up",down:"down"};
-      let lastState = findPeak?type.down:type.up;
-      for (let i = j-2; i >= 0; i--) {
-        if (points[i].y > points[i+1].y){ // increasing
-		  if (lastState == type.down && !findPeak)
-            return points[i+1];
-          lastState = type.up;
-        }else if(points[i].y == points[i+1].y){ // flat section
-          // dont change lastState if flat
-        }else if (points[i].y < points[i+1].y){ // decreasing
-          if (lastState == type.up && findPeak){
-            return points[i+1];
-		  }
-		  lastState = type.down;
-        }
-      } 
-    }
-  }
-  console.log("no max or min found");
-  return null;
-  }
-
-  /* createSelect 
-  Example Usage with Named Parameters:
-  this.createSelect({
-    options: [
-        { value: "1", text: "Option 1" },
-        { value: "2", text: "Option 2", selected: true }
-    ],
-    parent: document.body,
-    name: "selectionName"
-  });
-  */
-  createSelect({ options, parent, id = "", name = "", classList = [], onChange = null }) {
-    let select = document.createElement("select");
-    if (id) select.id = id;
-    if (name) select.name = name;
-    classList.forEach(cls => select.classList.add(cls));
-
-    options.forEach(({ value, text, selected = false }) => {
-        let option = document.createElement("option");
-        option.value = value;
-        option.textContent = text;
-        if (selected) option.selected = true;
-        select.appendChild(option);
-    });
-
-    if (onChange) select.addEventListener("change", (event) => onChange(event.target.value));
-
-    if (parent) parent.appendChild(select);
-
-    return select;
-}
-  
-  createRadioButtonGroup(options, groupName, containerId) {
-    const container = document.getElementById(containerId);
-
-    // Create a span to encapsulate the group
-    const groupSpan = document.createElement("span");
-    groupSpan.className = "radio-group"; // Add a class for styling if needed
-
-    // Add the group name
-    const name = document.createElement("span");
-    name.textContent = groupName;
-    groupSpan.appendChild(name);
-
-    for (const option of options) {
-      // Create the radio button
-      const radio = document.createElement("input");
-      radio.type = "radio";
-      radio.name = groupName;
-      radio.value = option.value;
-      radio.id = option.id;
-
-      // Create the label
-      const label = document.createElement("label");
-      label.htmlFor = option.id;
-      label.textContent = option.text;
-
-      // Append the radio button and label to the group span
-      groupSpan.appendChild(radio);
-      groupSpan.appendChild(label);
-    }
-
-    // Append the group span to the container
-    container.appendChild(groupSpan);
-  }
-
-  drawCursor(ctx,cursor) {
-	const cursor2alone = !this.cursor1.active && this.cursor2.active;
-    const { left, top } = this.margin;
-    // Calculate x value
-    //cursor.worldX = this.screenToWorldX(cursor.screenX);
-	cursor.screenX = this.worldToScreenX(cursor.worldX);
-    const xValue = cursor.worldX;
-
-    // Draw the vertical line
-    ctx.strokeStyle = "black";
-	ctx.setLineDash([5, 5]); // Set dash pattern (5px dash, 5px gap)
-    ctx.beginPath();
-    ctx.moveTo(cursor.screenX, top);
-    ctx.lineTo(cursor.screenX, this.height - this.margin.bottom);
-    ctx.stroke();
-    ctx.setLineDash([]); 
-	
-    // Prepare text segments
-    const segments = [];
-	
-	// add the names
-	if (cursor==this.cursor1 || cursor2alone)
-	  segments.push({text: `${cursor.name} > `, color: "black" });
-	else
-	  segments.push({text:"c2 - c1  > ", color: "black" });
-	  
-	// add the x values
-	if (cursor==this.cursor1 || cursor2alone)
-      segments.push({ text: `x: ${xValue.toFixed(2)}`, color: "black" });
-	else{
-		const dx = this.cursor2.worldX - this.cursor1.worldX;
-		segments.push({ text: `x: ${dx.toFixed(2)}`, color: "black" });
-	}
-
-	// add the series data for the current position
-    Object.keys(this.plots.series).forEach((name) => {
-      const series = this.plots.series[name];
-      if (series.data.length === 0) return;
-
-      const closestPoint = series.data.reduce((prev, curr) => (Math.abs(curr.x - xValue) < Math.abs(prev.x - xValue) ? curr : prev));
-      cursor.seriesData[name] = {"x":xValue,"y":closestPoint.y};
-      if (closestPoint) {
-		if (cursor==this.cursor1 || cursor2alone)
-          segments.push({ text: `${name}: ${closestPoint.y.toFixed(2)}`, color: series.color });
-		else{ 
-			const deltaY = this.cursor2.seriesData[name].y - this.cursor1.seriesData[name].y;
-			segments.push({ text: `${name}: ${deltaY.toFixed(2)}`, color: series.color });
-		}
-      }
-    });
-
-    // Render text segments with dividers
-	let textY = top - 30; // Position for cursor1
-	if (cursor==this.cursor2)
-	  textY += 20; // position for cursor2
-    let textX = this.margin.left; // Start at a fixed position near the left edge
-    const divider = " | ";
-    const padding = 5; // Padding between elements
-
-    ctx.font = "12px Arial";
-    ctx.textAlign = "left"; // Make sure text is aligned from the left edge
-	
-    segments.forEach((segment, index) => {
-      // Draw the divider first (except for the first element)
-      if (index > 0)
-		textX = this.addCursorText(ctx,textX,textY,"black",divider,padding);
-
-      // Draw the text segment
-	  textX = this.addCursorText(ctx,textX,textY,segment.color,segment.text,padding);
-    });
-  }
-  
-  addCursorText(ctx,x,y,color,text,padding){
-	  ctx.fillStyle = color;
-      ctx.fillText(text, x, y);
-      x += ctx.measureText(text).width + padding; // Increment currentX after drawing text
-	  return x;
-  }
 }
