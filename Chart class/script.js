@@ -488,8 +488,50 @@ class LineChart {
 	this.addCursorControl(this.cursor2);
 	
 	this.addMoveCursorControl(this.cursor2,"selectPlotId2","selectMinMax2");
+	
+	this.cmdcontainer.appendChild(document.createElement("br"));
+	
+	addButton("copy",()=>{this.copy();},commandsId);
   }
   
+  copy(){
+	  let text="";
+	  let cursors = this.getActiveCursors();
+	  if (cursors.length == 0){
+		  console.log("no active cursors");
+		  return;
+	  }else if (cursors.length==2){
+		  let x0 = cursors[0].worldX;
+		  let x1 = cursors[1].worldX;
+		  let fromX = x0<x1?x0:x1;
+		  let toX = x0<x1?x1:x0; 
+		  Object.keys(this.plots.series).forEach((name) => {
+            text += name + "\n";
+			let start = IndexOf(fromX,this.plots.series[name].data);
+			let end = IndexOf(toX,this.plots.series[name].data);
+			for (let i = start; i <= end; i++)
+			  text += JSON.stringify(this.plots.series[name].data[i]) + "\n";
+			text += "\n";
+          });
+		  copyToClipboard(text);
+		  return;
+	  }else{
+		Object.keys(this.plots.series).forEach((name) => {
+          text += name + "\n";
+	      let i = IndexOf(cursors[0].worldX,this.plots.series[name].data);
+			 text += JSON.stringify(this.plots.series[name].data[i]) + "\n";
+          });
+		text += "\n";
+		copyToClipboard(text);
+	  }
+  }
+  
+  getActiveCursors(){
+	  let cursors = [];
+	  if (this.cursor1.active)cursors.push(this.cursor1);
+	  if (this.cursor2.active)cursors.push(this.cursor2);
+	  return cursors;
+  }
   addAutoScaleButton(){
 	const button = document.createElement("button");
     button.textContent = "Disable Auto-Scale";
