@@ -329,15 +329,18 @@ class LineChart {
       // handle cursor move
       if (this.cursor1.active && this.pan.type == this.panType.cursor1) {
         this.cursor1.screenX += dx;
+		this.cursor1.worldX = this.screenToWorldX(this.cursor1.screenX);
 	  }else if (this.cursor2.active && this.pan.type == this.panType.cursor2) {
         this.cursor2.screenX += dx;
-      } else { // moving the series data
+		this.cursor2.worldX = this.screenToWorldX(this.cursor2.screenX);
+      } else { // panning series and cursor
         // convert from pixels to data units
-        // currently leaves the cursor alone
         this.view.minX -= dx / this.xScale;
         this.view.maxX -= dx / this.xScale;
         this.view.minY += dy / this.yScale;
         this.view.maxY += dy / this.yScale;
+		this.cursor1.screenX += dx;
+		this.cursor2.screenX += dx;
       }
       this.pan.start = { x: xtouch, y: ytouch };
       this.render();
@@ -461,7 +464,7 @@ class LineChart {
       if (cursor.active) {
         const canvasCenterX = (this.width - this.margin.left - this.margin.right) / 2 + this.margin.left;
         cursor.screenX = canvasCenterX;
-        cursor.worldX = this.screenToWorldX(this.cursor1.screenX);
+        cursor.worldX = this.screenToWorldX(cursor.screenX);
       }
       this.render(); // Re-render the chart
     });
@@ -487,6 +490,7 @@ class LineChart {
 									   this.get(selectMinMaxId).value=="Max"?true:false);
 			if (peak){
 				cursor.screenX = this.worldToScreenX(peak.x);
+				cursor.worldX = this.screenToWorldX(cursor.screenX);
 				this.prepareRender();
 			}
 		}
@@ -501,6 +505,7 @@ class LineChart {
 									   this.get(selectMinMaxId).value=="Max"?true:false);
 			if (peak){
 				cursor.screenX = this.worldToScreenX(peak.x);
+				cursor.worldX = this.screenToWorldX(cursor.screenX);
 				this.prepareRender();
 			}
 		}
@@ -642,7 +647,8 @@ class LineChart {
 	const cursor2alone = !this.cursor1.active && this.cursor2.active;
     const { left, top } = this.margin;
     // Calculate x value
-    cursor.worldX = this.screenToWorldX(cursor.screenX);
+    //cursor.worldX = this.screenToWorldX(cursor.screenX);
+	cursor.screenX = this.worldToScreenX(cursor.worldX);
     const xValue = cursor.worldX;
 
     // Draw the vertical line
