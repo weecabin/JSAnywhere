@@ -35,7 +35,7 @@ button{
 }
 
 .moveCursor select,
-.moveCursor button {
+.moveCursor button{
     outline: none; /* Remove the focus outline */
     /*border: none;  /* Remove borders */
     background: transparent; /* Remove background color */
@@ -51,7 +51,16 @@ button{
 
 .moveCursor {
     display: inline-flex; /* Align items in a row */
+	visibility: hidden;
     gap: 5px; /* Optional spacing between select and button */
     align-items: center; /* Vertically align items */
+}
+
+#debug{
+	margin-top: 40px;
+}
+
+span{
+	margin:5px;
 }
 
