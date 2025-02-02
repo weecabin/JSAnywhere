@@ -6,23 +6,23 @@ class LineChart {
     this.dirtyCount = 0;
     this.width = width;
     this.height = height;
-	// specify the margin of the plot area
+    // specify the margin of the plot area
     this.margin = { top: 40, right: 20, bottom: 20, left: 40 };
-	// this is the object that holds all the plot data
-	// series is {name:{color,data:[{x,y}]}}
-	// this.plots.series[name].data returns an array of points
-	// this.plots.series[name].color returs the color used for the series plot
+    // this is the object that holds all the plot data
+    // series is {name:{color,data:[{x,y}]}}
+    // this.plots.series[name].data returns an array of points
+    // this.plots.series[name].color returs the color used for the series plot
     this.plots = {
-      series:{},
-      minX:Infinity,
-      maxX:-Infinity,
-      minY:Infinity,
-      maxY:-Infinity
-    }
+      series: {},
+      minX: Infinity,
+      maxX: -Infinity,
+      minY: Infinity,
+      maxY: -Infinity,
+    };
 
     // Zoom and pan state
     this.view = { minX: this.plots.minX, maxX: this.plots.maxX, minY: this.plots.minY, maxY: this.plots.maxY };
-    this.panType = { cursor1: "cursor1", cursor2:"cursor2", series: "series" };
+    this.panType = { cursor1: "cursor1", cursor2: "cursor2", series: "series" };
     this.pan = { active: false, type: this.panType.series, start: null };
     this.startPinchDistance = null;
     this.startView = null;
@@ -30,9 +30,9 @@ class LineChart {
     // Auto-scale state
     this.autoScale = true;
 
-    this.cursor1 = {name:"Cursor1", active: false, worldX: null , screenX:null, seriesData:{}}; // Track cursor state
-    this.cursor2 = {name:"Cursor2", active: false, worldX: null , screenX:null, seriesData:{}}; // Track cursor state
-	
+    this.cursor1 = { name: "Cursor1", active: false, worldX: null, screenX: null, seriesData: {} }; // Track cursor state
+    this.cursor2 = { name: "Cursor2", active: false, worldX: null, screenX: null, seriesData: {} }; // Track cursor state
+
     // Pause datapoint updates
     this.pause = false;
 
@@ -50,27 +50,27 @@ class LineChart {
 
     this.addControls(containerId, commandsId);
   }
-  
+
   addSeries(name, color) {
     if (this.plots.series[name]) {
       return;
     }
     this.plots.series[name] = { color, data: [] };
-	this.populateSeriesSelect("selectPlotId1")
-	this.populateSeriesSelect("selectPlotId2")
+    this.populateSeriesSelect("selectPlotId1");
+    this.populateSeriesSelect("selectPlotId2");
   }
 
   populateSeriesSelect(selectId) {
     let select = document.getElementById(selectId);
     select.innerHTML = ""; // Clear existing options
-    Object.keys(this.plots.series).forEach(seriesName => {
-        let option = document.createElement("option");
-        option.value = seriesName;
-        option.textContent = seriesName;
-        select.appendChild(option);
+    Object.keys(this.plots.series).forEach((seriesName) => {
+      let option = document.createElement("option");
+      option.value = seriesName;
+      option.textContent = seriesName;
+      select.appendChild(option);
     });
   }
-  
+
   addPoint(seriesName, x, y) {
     if (this.pause) return;
     if (!this.plots.series[seriesName]) {
@@ -148,14 +148,14 @@ class LineChart {
   }
 
   //canvas units per unit data
-  get xScale(){ 
+  get xScale() {
     const { left, right } = this.margin;
     const rangeX = this.view.maxX - this.view.minX;
     return rangeX !== 0 ? (this.width - left - right) / rangeX : 1;
   }
 
   //canvas units per unit data
-  get yScale(){
+  get yScale() {
     const { top, bottom } = this.margin;
     const rangeY = this.view.maxY - this.view.minY;
     return rangeY !== 0 ? (this.height - top - bottom) / rangeY : 1;
@@ -191,10 +191,9 @@ class LineChart {
     if (this.cursor1.active && this.cursor1.screenX !== null) {
       this.drawCursor(this.context, this.cursor1);
     }
-	if (this.cursor2.active && this.cursor2.screenX !== null) {
+    if (this.cursor2.active && this.cursor2.screenX !== null) {
       this.drawCursor(this.context, this.cursor2);
     }
-		
   }
 
   drawAxes(ctx) {
@@ -297,89 +296,82 @@ class LineChart {
     ctx.stroke();
   }
 
-  drawCursor(ctx,cursor) {
-	const cursor2alone = !this.cursor1.active && this.cursor2.active;
+  drawCursor(ctx, cursor) {
+    const cursor2alone = !this.cursor1.active && this.cursor2.active;
     const { left, top } = this.margin;
     // Calculate x value
     //cursor.worldX = this.screenToWorldX(cursor.screenX);
-	cursor.screenX = this.worldToScreenX(cursor.worldX);
+    cursor.screenX = this.worldToScreenX(cursor.worldX);
     const xValue = cursor.worldX;
 
     // Draw the vertical line
     ctx.strokeStyle = "black";
-	ctx.setLineDash([5, 5]); // Set dash pattern (5px dash, 5px gap)
+    ctx.setLineDash([5, 5]); // Set dash pattern (5px dash, 5px gap)
     ctx.beginPath();
     ctx.moveTo(cursor.screenX, top);
     ctx.lineTo(cursor.screenX, this.height - this.margin.bottom);
     ctx.stroke();
     ctx.setLineDash([]); // remove dash
-	
-	// label the cursors
-	ctx.textAlign = "left";
-	ctx.fillStyle = "black";
-    ctx.fillText(cursor==this.cursor1?"1":"2", cursor.screenX+2, top+2);
-	  
+
+    // label the cursors
+    ctx.textAlign = "left";
+    ctx.fillStyle = "black";
+    ctx.fillText(cursor == this.cursor1 ? "1" : "2", cursor.screenX + 2, top + 2);
+
     // Prepare text segments
     const segments = [];
-	
-	// add the names
-	if (cursor==this.cursor1 || cursor2alone)
-	  segments.push({text: `${cursor.name} > `, color: "black" });
-	else
-	  segments.push({text:"c2 - c1  > ", color: "black" });
-	  
-	// add the x values
-	if (cursor==this.cursor1 || cursor2alone)
-      segments.push({ text: `x: ${xValue.toFixed(2)}`, color: "black" });
-	else{
-		const dx = this.cursor2.worldX - this.cursor1.worldX;
-		segments.push({ text: `x: ${dx.toFixed(2)}`, color: "black" });
-	}
 
-	// add the series data for the current position
+    // add the names
+    if (cursor == this.cursor1 || cursor2alone) segments.push({ text: `${cursor.name} > `, color: "black" });
+    else segments.push({ text: "c2 - c1  > ", color: "black" });
+
+    // add the x values
+    if (cursor == this.cursor1 || cursor2alone) segments.push({ text: `x: ${xValue.toFixed(2)}`, color: "black" });
+    else {
+      const dx = this.cursor2.worldX - this.cursor1.worldX;
+      segments.push({ text: `x: ${dx.toFixed(2)}`, color: "black" });
+    }
+
+    // add the series data for the current position
     Object.keys(this.plots.series).forEach((name) => {
       const series = this.plots.series[name];
       if (series.data.length === 0) return;
 
       const closestPoint = series.data.reduce((prev, curr) => (Math.abs(curr.x - xValue) < Math.abs(prev.x - xValue) ? curr : prev));
-      cursor.seriesData[name] = {"x":xValue,"y":closestPoint.y};
+      cursor.seriesData[name] = { x: xValue, y: closestPoint.y };
       if (closestPoint) {
-		if (cursor==this.cursor1 || cursor2alone)
-          segments.push({ text: `${name}: ${closestPoint.y.toFixed(2)}`, color: series.color });
-		else{ 
-			const deltaY = this.cursor2.seriesData[name].y - this.cursor1.seriesData[name].y;
-			segments.push({ text: `${name}: ${deltaY.toFixed(2)}`, color: series.color });
-		}
+        if (cursor == this.cursor1 || cursor2alone) segments.push({ text: `${name}: ${closestPoint.y.toFixed(2)}`, color: series.color });
+        else {
+          const deltaY = this.cursor2.seriesData[name].y - this.cursor1.seriesData[name].y;
+          segments.push({ text: `${name}: ${deltaY.toFixed(2)}`, color: series.color });
+        }
       }
     });
 
     // Render text segments with dividers
-	let textY = top - 30; // Position for cursor1
-	if (cursor==this.cursor2)
-	  textY += 20; // position for cursor2
+    let textY = top - 30; // Position for cursor1
+    if (cursor == this.cursor2) textY += 20; // position for cursor2
     let textX = this.margin.left; // Start at a fixed position near the left edge
     const divider = " | ";
     const padding = 5; // Padding between elements
 
     ctx.font = "12px Arial";
     ctx.textAlign = "left"; // Make sure text is aligned from the left edge
-	
+
     segments.forEach((segment, index) => {
       // Draw the divider first (except for the first element)
-      if (index > 0)
-		textX = this.addCursorText(ctx,textX,textY,"black",divider,padding);
+      if (index > 0) textX = this.addCursorText(ctx, textX, textY, "black", divider, padding);
 
       // Draw the text segment
-	  textX = this.addCursorText(ctx,textX,textY,segment.color,segment.text,padding);
+      textX = this.addCursorText(ctx, textX, textY, segment.color, segment.text, padding);
     });
   }
-  
-  addCursorText(ctx,x,y,color,text,padding){
-	  ctx.fillStyle = color;
-      ctx.fillText(text, x, y);
-      x += ctx.measureText(text).width + padding; // Increment currentX after drawing text
-	  return x;
-  
+
+  addCursorText(ctx, x, y, color, text, padding) {
+    ctx.fillStyle = color;
+    ctx.fillText(text, x, y);
+    x += ctx.measureText(text).width + padding; // Increment currentX after drawing text
+    return x;
   }
   // Touch Handlers
   handleTouchStart(event) {
@@ -390,7 +382,7 @@ class LineChart {
       const rect = this.container.getBoundingClientRect();
       if (this.cursor1.active && Math.abs(this.cursor1.screenX - xtouch + rect.left) < 25) {
         this.pan.type = this.panType.cursor1;
-	  }else if (this.cursor2.active && Math.abs(this.cursor2.screenX - xtouch + rect.left) < 25) {
+      } else if (this.cursor2.active && Math.abs(this.cursor2.screenX - xtouch + rect.left) < 25) {
         this.pan.type = this.panType.cursor2;
       } else {
         this.pan.type = this.panType.series;
@@ -417,18 +409,19 @@ class LineChart {
       // handle cursor move
       if (this.cursor1.active && this.pan.type == this.panType.cursor1) {
         this.cursor1.screenX += dx;
-		this.cursor1.worldX = this.screenToWorldX(this.cursor1.screenX);
-	  }else if (this.cursor2.active && this.pan.type == this.panType.cursor2) {
+        this.cursor1.worldX = this.screenToWorldX(this.cursor1.screenX);
+      } else if (this.cursor2.active && this.pan.type == this.panType.cursor2) {
         this.cursor2.screenX += dx;
-		this.cursor2.worldX = this.screenToWorldX(this.cursor2.screenX);
-      } else { // panning series and cursor
+        this.cursor2.worldX = this.screenToWorldX(this.cursor2.screenX);
+      } else {
+        // panning series and cursor
         // convert from pixels to data units
         this.view.minX -= dx / this.xScale;
         this.view.maxX -= dx / this.xScale;
         this.view.minY += dy / this.yScale;
         this.view.maxY += dy / this.yScale;
-		this.cursor1.screenX += dx;
-		this.cursor2.screenX += dx;
+        this.cursor1.screenX += dx;
+        this.cursor2.screenX += dx;
       }
       this.pan.start = { x: xtouch, y: ytouch };
       this.render();
@@ -460,10 +453,10 @@ class LineChart {
     this.pan.active = false;
     this.startPinchDistance = null;
     this.startView = null;
-    if(this.cursor1.active){
+    if (this.cursor1.active) {
       this.cursor1.worldX = this.screenToWorldX(this.cursor1.screenX);
     }
-	if(this.cursor2.active){
+    if (this.cursor2.active) {
       this.cursor2.worldX = this.screenToWorldX(this.cursor2.screenX);
     }
   }
@@ -477,70 +470,76 @@ class LineChart {
   addControls(containerId, commandsId) {
     this.addAutoScaleButton();
 
-	this.addZoomFitButton();
-	
-	this.addZoomControls(commandsId);
+    this.addZoomFitButton();
+
+    this.addZoomControls(commandsId);
 
     this.addClearButton();
-	
+
     this.cmdcontainer.appendChild(document.createElement("br"));
-	
-	this.addCursorControl(this.cursor1);
-	
-	this.addMoveCursorControl(this.cursor1,"selectPlotId1","selectMinMax1");
-	
-	this.cmdcontainer.appendChild(document.createElement("br"));
-	
-	this.addCursorControl(this.cursor2);
-	
-	this.addMoveCursorControl(this.cursor2,"selectPlotId2","selectMinMax2");
-	
-	this.cmdcontainer.appendChild(document.createElement("br"));
-	
-	const btn = addButton("copy",()=>{this.copy();},commandsId,{id:"copyId"});
-	btn.style.visibility = "hidden";
+
+    this.addCursorControl(this.cursor1);
+
+    this.addMoveCursorControl(this.cursor1, "selectPlotId1", "selectMinMax1");
+
+    this.cmdcontainer.appendChild(document.createElement("br"));
+
+    this.addCursorControl(this.cursor2);
+
+    this.addMoveCursorControl(this.cursor2, "selectPlotId2", "selectMinMax2");
+
+    this.cmdcontainer.appendChild(document.createElement("br"));
+
+    const btn = addButton(
+      "copy",
+      () => {
+        this.copy();
+      },
+      commandsId,
+      { id: "copyId" }
+    );
+    btn.style.visibility = "hidden";
   }
-  
-  copy(){
-	  let text="";
-	  let cursors = this.getActiveCursors();
-	  if (cursors.length == 0){
-		  console.log("no active cursors");
-		  return;
-	  }else if (cursors.length==2){
-		  let x0 = cursors[0].worldX;
-		  let x1 = cursors[1].worldX;
-		  let fromX = x0<x1?x0:x1;
-		  let toX = x0<x1?x1:x0; 
-		  Object.keys(this.plots.series).forEach((name) => {
-            text += name + "\n";
-			let start = IndexOf(fromX,this.plots.series[name].data);
-			let end = IndexOf(toX,this.plots.series[name].data);
-			for (let i = start; i <= end; i++)
-			  text += JSON.stringify(this.plots.series[name].data[i]) + "\n";
-			text += "\n";
-          });
-		  copyToClipboard(text);
-		  return;
-	  }else{
-		Object.keys(this.plots.series).forEach((name) => {
-          text += name + "\n";
-	      let i = IndexOf(cursors[0].worldX,this.plots.series[name].data);
-			 text += JSON.stringify(this.plots.series[name].data[i]) + "\n";
-          });
-		text += "\n";
-		copyToClipboard(text);
-	  }
+
+  copy() {
+    let text = "";
+    let cursors = this.getActiveCursors();
+    if (cursors.length == 0) {
+      console.log("no active cursors");
+      return;
+    } else if (cursors.length == 2) {
+      let x0 = cursors[0].worldX;
+      let x1 = cursors[1].worldX;
+      let fromX = x0 < x1 ? x0 : x1;
+      let toX = x0 < x1 ? x1 : x0;
+      Object.keys(this.plots.series).forEach((name) => {
+        text += name + "\n";
+        let start = IndexOf(fromX, this.plots.series[name].data);
+        let end = IndexOf(toX, this.plots.series[name].data);
+        for (let i = start; i <= end; i++) text += JSON.stringify(this.plots.series[name].data[i]) + "\n";
+        text += "\n";
+      });
+      copyToClipboard(text);
+      return;
+    } else {
+      Object.keys(this.plots.series).forEach((name) => {
+        text += name + "\n";
+        let i = IndexOf(cursors[0].worldX, this.plots.series[name].data);
+        text += JSON.stringify(this.plots.series[name].data[i]) + "\n";
+      });
+      text += "\n";
+      copyToClipboard(text);
+    }
   }
-  
-  getActiveCursors(){
-	  let cursors = [];
-	  if (this.cursor1.active)cursors.push(this.cursor1);
-	  if (this.cursor2.active)cursors.push(this.cursor2);
-	  return cursors;
+
+  getActiveCursors() {
+    let cursors = [];
+    if (this.cursor1.active) cursors.push(this.cursor1);
+    if (this.cursor2.active) cursors.push(this.cursor2);
+    return cursors;
   }
-  addAutoScaleButton(){
-	const button = document.createElement("button");
+  addAutoScaleButton() {
+    const button = document.createElement("button");
     button.textContent = "Disable Auto-Scale";
     button.addEventListener("click", () => {
       this.autoScale = !this.autoScale;
@@ -548,13 +547,19 @@ class LineChart {
     });
     this.cmdcontainer.appendChild(button);
   }
-  
-  addZoomFitButton(){
-	addButton("Zoom Fit",()=>{this.zoomFit();},this.cmdcontainer.id);
+
+  addZoomFitButton() {
+    addButton(
+      "Zoom Fit",
+      () => {
+        this.zoomFit();
+      },
+      this.cmdcontainer.id
+    );
   }
-  
-  addClearButton(){
-	 const clearbutton = document.createElement("button");
+
+  addClearButton() {
+    const clearbutton = document.createElement("button");
     clearbutton.textContent = "Clear";
     clearbutton.addEventListener("click", () => {
       this.pause = true;
@@ -568,8 +573,8 @@ class LineChart {
     this.cmdcontainer.appendChild(clearbutton);
   }
 
-  addZoomControls(commandsId){
-	const options = [
+  addZoomControls(commandsId) {
+    const options = [
       { value: "X", text: "X only", id: "zoomX" },
       { value: "Y", text: "Y Only", id: "zoomY" },
       { value: "XY", text: "X&Y", id: "zoomXY" },
@@ -580,10 +585,10 @@ class LineChart {
     this.zoomXY = document.getElementById("zoomXY");
     this.zoomX.checked = true;
   }
-  
-  addCursorControl(cursor){
-	  // Add Cursor on/off button
-	const name = cursor.name;
+
+  addCursorControl(cursor) {
+    // Add Cursor on/off button
+    const name = cursor.name;
     const cursorButton = document.createElement("button");
     cursorButton.textContent = `Enable ${name}`;
     cursorButton.addEventListener("click", () => {
@@ -593,69 +598,65 @@ class LineChart {
         const canvasCenterX = (this.width - this.margin.left - this.margin.right) / 2 + this.margin.left;
         cursor.screenX = canvasCenterX;
         cursor.worldX = this.screenToWorldX(cursor.screenX);
-		document.querySelector(
-		    cursor==this.cursor1?".moveCursor1":".moveCursor2").style.visibility="visible";
-      }else{
-		document.querySelector(
-		    cursor==this.cursor1?".moveCursor1":".moveCursor2").style.visibility="hidden";
+        document.querySelector(cursor == this.cursor1 ? ".moveCursor1" : ".moveCursor2").style.visibility = "visible";
+      } else {
+        document.querySelector(cursor == this.cursor1 ? ".moveCursor1" : ".moveCursor2").style.visibility = "hidden";
       }
-	  this.setControlVisibility();
+      this.setControlVisibility();
       this.render(); // Re-render the chart
     });
     this.cmdcontainer.appendChild(cursorButton);
   }
-  
-  setControlVisibility(){
-	  const cursors = this.getActiveCursors();
-	  dbg(cursors.length);
-	  if (cursors.length == 0)
-	    get("copyId").style.visibility="hidden";
-	  else 
-	  	get("copyId").style.visibility="visible";
+
+  setControlVisibility() {
+    const cursors = this.getActiveCursors();
+    dbg(cursors.length);
+    if (cursors.length == 0) get("copyId").style.visibility = "hidden";
+    else get("copyId").style.visibility = "visible";
   }
-  
-  addMoveCursorControl(cursor,selectPlotId,selectMinMaxId){
-	const span = document.createElement("span");
-	span.classList.add("moveCursor");
-	span.classList.add(cursor==this.cursor1?"moveCursor1":"moveCursor2");
-	//span.style.display = "none";
-	createSelect({options:[],id:selectPlotId,parent: span,});
-	
-	createSelect({options:[
-		{value:"Max",text:"Max"},
-		{value:"Min",text:"Min"}],id:selectMinMaxId,parent: span,});
-		
-	let button = document.createElement("button");
-	span.appendChild(button);
+
+  addMoveCursorControl(cursor, selectPlotId, selectMinMaxId) {
+    const span = document.createElement("span");
+    span.classList.add("moveCursor");
+    span.classList.add(cursor == this.cursor1 ? "moveCursor1" : "moveCursor2");
+    //span.style.display = "none";
+    createSelect({ options: [], id: selectPlotId, parent: span });
+
+    createSelect({
+      options: [
+        { value: "Max", text: "Max" },
+        { value: "Min", text: "Min" },
+      ],
+      id: selectMinMaxId,
+      parent: span,
+    });
+
+    let button = document.createElement("button");
+    span.appendChild(button);
     button.textContent = "Next";
     button.addEventListener("click", () => {
-		if(cursor.active){
-			const peak = NextPeak(this.plots.series[get(selectPlotId).value].data,
-			                           cursor.worldX,
-									   get(selectMinMaxId).value=="Max"?true:false);
-			if (peak){
-				cursor.screenX = this.worldToScreenX(peak.x);
-				cursor.worldX = this.screenToWorldX(cursor.screenX);
-				this.prepareRender();
-			}
-		}
+      if (cursor.active) {
+        const peak = NextPeak(this.plots.series[get(selectPlotId).value].data, cursor.worldX, get(selectMinMaxId).value == "Max" ? true : false);
+        if (peak) {
+          cursor.screenX = this.worldToScreenX(peak.x);
+          cursor.worldX = this.screenToWorldX(cursor.screenX);
+          this.prepareRender();
+        }
+      }
     });
     button = document.createElement("button");
-	span.appendChild(button);
+    span.appendChild(button);
     button.textContent = "Prev";
     button.addEventListener("click", () => {
-		if(cursor.active){
-			const peak = PrevPeak(this.plots.series[get(selectPlotId).value].data,
-			                           cursor.worldX,
-									   get(selectMinMaxId).value=="Max"?true:false);
-			if (peak){
-				cursor.screenX = this.worldToScreenX(peak.x);
-				cursor.worldX = this.screenToWorldX(cursor.screenX);
-				this.prepareRender();
-			}
-		}
+      if (cursor.active) {
+        const peak = PrevPeak(this.plots.series[get(selectPlotId).value].data, cursor.worldX, get(selectMinMaxId).value == "Max" ? true : false);
+        if (peak) {
+          cursor.screenX = this.worldToScreenX(peak.x);
+          cursor.worldX = this.screenToWorldX(cursor.screenX);
+          this.prepareRender();
+        }
+      }
     });
     this.cmdcontainer.appendChild(span);
   }
-  
 }
