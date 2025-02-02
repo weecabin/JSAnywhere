@@ -1,8 +1,8 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html> -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <title>Dynamic Line Chart</title>
   <style>
     canvas {
@@ -16,6 +16,7 @@
   <div id="chart-container" class="chart"></div>
   <div id="chart-commands" class="chart"></div>
   <textarea id="debug" rows="20" cols="80"></textarea>
+  <script src="tools.js"></script>
   <script src="script.js"></script>
   <script>
     // Example usage
@@ -38,8 +39,8 @@
         x++;
       },25);}
     
-    if(0){
-    for(let x=-10;x<=10;x+=.1){
+    if(1){
+    for(let x=-50;x<=50;x+=.1){
       chart.addPoint('Sinc', x, 5*x==0?0:Math.sin(x)/x);
     }}
 
