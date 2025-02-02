@@ -155,9 +155,15 @@ function dbg(txt) {
   return null;
   }
   
-  function addButton(text,eventHandler,containerId){
+  /*
+  
+  */
+  function addButton(text,eventHandler,containerId,{id="",classList = []}={}){
 	const button = document.createElement("button");
+	if (id)button.id = id;
+	classList.forEach(cls => select.classList.add(cls));
     button.textContent = text;
     button.addEventListener("click", eventHandler);
     get(containerId).appendChild(button);
+	return button;
   }
