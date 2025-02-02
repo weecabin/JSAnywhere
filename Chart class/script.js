@@ -278,10 +278,8 @@ class LineChart {
 
   drawSeries(ctx, series) {
     const { top, right, bottom, left } = this.margin;
-
     ctx.strokeStyle = series.color;
     ctx.beginPath();
-
     series.data.forEach((point, index) => {
       // convert from data units to pixels
       const x = this.worldToScreenX(point.x);
@@ -491,7 +489,8 @@ class LineChart {
 	
 	this.cmdcontainer.appendChild(document.createElement("br"));
 	
-	addButton("copy",()=>{this.copy();},commandsId);
+	const btn = addButton("copy",()=>{this.copy();},commandsId,{id:"copyId"});
+	btn.style.visibility = "hidden";
   }
   
   copy(){
@@ -586,15 +585,32 @@ class LineChart {
         const canvasCenterX = (this.width - this.margin.left - this.margin.right) / 2 + this.margin.left;
         cursor.screenX = canvasCenterX;
         cursor.worldX = this.screenToWorldX(cursor.screenX);
+		document.querySelector(
+		    cursor==this.cursor1?".moveCursor1":".moveCursor2").style.visibility="visible";
+      }else{
+		document.querySelector(
+		    cursor==this.cursor1?".moveCursor1":".moveCursor2").style.visibility="hidden";
       }
+	  this.setControlVisibility();
       this.render(); // Re-render the chart
     });
     this.cmdcontainer.appendChild(cursorButton);
   }
   
+  setControlVisibility(){
+	  const cursors = this.getActiveCursors();
+	  dbg(cursors.length);
+	  if (cursors.length == 0)
+	    get("copyId").style.visibility="hidden";
+	  else 
+	  	get("copyId").style.visibility="visible";
+  }
+  
   addMoveCursorControl(cursor,selectPlotId,selectMinMaxId){
 	const span = document.createElement("span");
-	span.classList.add(["moveCursor"]);
+	span.classList.add("moveCursor");
+	span.classList.add(cursor==this.cursor1?"moveCursor1":"moveCursor2");
+	//span.style.display = "none";
 	createSelect({options:[],id:selectPlotId,parent: span,});
 	
 	createSelect({options:[
