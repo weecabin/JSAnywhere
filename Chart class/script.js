@@ -9,6 +9,9 @@ class LineChart {
 	// specify the margin of the plot area
     this.margin = { top: 40, right: 20, bottom: 20, left: 40 };
 	// this is the object that holds all the plot data
+	// series is {name:{color,data:[{x,y}]}}
+	// this.plots.series[name].data returns an array of points
+	// this.plots.series[name].color returs the color used for the series plot
     this.plots = {
       series:{},
       minX:Infinity,
@@ -309,8 +312,13 @@ class LineChart {
     ctx.moveTo(cursor.screenX, top);
     ctx.lineTo(cursor.screenX, this.height - this.margin.bottom);
     ctx.stroke();
-    ctx.setLineDash([]); 
+    ctx.setLineDash([]); // remove dash
 	
+	// label the cursors
+	ctx.textAlign = "left";
+	ctx.fillStyle = "black";
+    ctx.fillText(cursor==this.cursor1?"1":"2", cursor.screenX+2, top+2);
+	  
     // Prepare text segments
     const segments = [];
 	
