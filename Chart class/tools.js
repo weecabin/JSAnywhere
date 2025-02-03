@@ -167,3 +167,52 @@ function dbg(txt) {
     get(containerId).appendChild(button);
 	return button;
   }
+  
+  /*
+seriesObj = {seriesName:{color,data:{x,y},...}]
+where series = {name:seriesName,data[{x,y},{x,y}...]}
+*/
+function FormatData3(seriesObj, {xPrecision = 2, yPrecision = 2, padding = 10, delimiter = " ", startX = null, endX = null } = {}) {
+  let names = Object.keys(seriesObj);
+  let text = "x".padEnd(padding) + delimiter + names.map(name => name.padEnd(padding)).join(delimiter) + "\n";
+
+  let allXValues = new Set(); // Use a Set to store unique values
+
+  // Collect unique x values while applying range limits
+  names.forEach(name => {
+    seriesObj[name].data.forEach(({ x }) => {
+      let xVal = x.toFixed(xPrecision);
+      let xNum = Number(xVal); // Convert back to number for comparison
+
+      // Apply range filtering while adding to the set
+      if ((startX === null || xNum >= startX) && (endX === null || xNum <= endX)) {
+        allXValues.add(xVal); // Store as a string for consistent precision
+      }
+    });
+  });
+
+  // Convert to array and sort
+  allXValues = [...allXValues].sort((a, b) => a - b);
+
+  // Iterate over filtered x values and create the rows
+  allXValues.forEach(x => {
+    let row = { "x": x };
+
+    // Add the x value (padded)
+    text += `${x.padEnd(padding)}`;
+
+    // Add data for each series
+    names.forEach(name => {
+      const point = seriesObj[name].data.find(p => p.x.toFixed(xPrecision) === x);
+      row[name] = point ? point.y.toFixed(yPrecision) : "--";
+      // Add series data (padded)
+      text += delimiter + `${row[name].padEnd(padding)}`;
+    });
+
+    // Add newline after each row
+    text += "\n";
+  });
+
+  dbg(text); // Assuming dbg() is your custom debug function
+  return text;
+}
