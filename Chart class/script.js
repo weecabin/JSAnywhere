@@ -512,13 +512,7 @@ class LineChart {
       let x1 = cursors[1].worldX;
       let fromX = x0 < x1 ? x0 : x1;
       let toX = x0 < x1 ? x1 : x0;
-      Object.keys(this.plots.series).forEach((name) => {
-        text += name + "\n";
-        let start = IndexOf(fromX, this.plots.series[name].data);
-        let end = IndexOf(toX, this.plots.series[name].data);
-        for (let i = start; i <= end; i++) text += JSON.stringify(this.plots.series[name].data[i]) + "\n";
-        text += "\n";
-      });
+      text = FormatData3(this.plots.series,{startX:fromX,endX:toX});
       copyToClipboard(text);
       return;
     } else {
