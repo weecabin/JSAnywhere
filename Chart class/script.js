@@ -1,7 +1,10 @@
 class LineChart {
-  constructor(containerId, commandsId, width, height) {
+  constructor(containerId, commandsId, 
+    {width=800, height=400, dispPrecisionX=2,dispPrecisionY=4}={}) {
     this.container = document.getElementById(containerId);
     this.cmdcontainer = document.getElementById(commandsId);
+	this.dispPrecisionX = dispPrecisionX;
+	this.dispPrecisionY = dispPrecisionY;
     this.yAxisDirty = true;
     this.dirtyCount = 0;
     this.width = width;
@@ -512,18 +515,28 @@ class LineChart {
       let x1 = cursors[1].worldX;
       let fromX = x0 < x1 ? x0 : x1;
       let toX = x0 < x1 ? x1 : x0;
-      text = FormatData3(this.plots.series,{startX:fromX,endX:toX});
+      text = FormatData3(this.plots.series,
+	    {startX:fromX,endX:toX,yPrecision:this.dispPrecisionY,xPrecision:this.dispPrecisionX});
       copyToClipboard(text);
-      return;
     } else {
       Object.keys(this.plots.series).forEach((name) => {
         text += name + "\n";
         let i = IndexOf(cursors[0].worldX, this.plots.series[name].data);
-        text += JSON.stringify(this.plots.series[name].data[i]) + "\n";
+        text += JSON.stringify(this.plots.series[name].data[i],
+		        (key,value)=>{
+					if (key=="y"){
+						value = Number(value.toFixed(this.dispPrecisionY));
+					}
+					else if (key=="x"){
+						value = Number(value.toFixed(this.dispPrecisionX));
+					}
+					return value;
+		        }) + "\n";
       });
       text += "\n";
       copyToClipboard(text);
     }
+	dbg(text);
   }
 
   getActiveCursors() {
@@ -604,7 +617,6 @@ class LineChart {
 
   setControlVisibility() {
     const cursors = this.getActiveCursors();
-    dbg(cursors.length);
     if (cursors.length == 0) get("copyId").style.visibility = "hidden";
     else get("copyId").style.visibility = "visible";
   }
