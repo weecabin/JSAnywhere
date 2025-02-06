@@ -4,12 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <title>Dynamic Line Chart</title>
-  <style>
-    canvas {
-      border: 1px solid black;
-    }
-  </style>
-    <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
@@ -27,35 +22,31 @@
     chart.addSeries('Cos', 'blue');
     chart.addSeries('Sinc', 'green');
     //chart.addSeries('Single','red');
-
-    // Adding data points
-    if(0){
-      let x = 0;
-      setInterval( () => {
-        if(x==0)chart.addPoint('Single', x, 50);
-        if(x==10)chart.addPoint('Single', x, 50);
-        if(x==75)chart.addPoint('Single', x, 55);
-        if(x==99)chart.addPoint('Single', x, 60);
-        x++;
-      },25);}
     
-    if(1){
+    if(0){ 
     for(let x=-10;x<=10;x+=.1)
-      chart.addPoint('Sinc', x, Math.sin(x)/x);
+      chart.addPoint('Sinc', x, x==0?1:Math.sin(x)/x);
 	for(let x=-10;x<=10;x+=.1)
       chart.addPoint('Cos', x, Math.cos(x));
 	for(let x=-10;x<=10;x+=.1)
       chart.addPoint('Sin', x, Math.sin(x));
     }
 
-    if(0){
-    let x = 0;
-    setInterval( () => {
+	let int1=null;
+    if(1){
+    let x = -50;
+    int1 = setInterval( () => {
       chart.addPoint('Sin', x, Math.sin(x));
       chart.addPoint('Cos', x, Math.cos(x));
+	  chart.addPoint('Sinc', x, x==0?1:Math.sin(x)/x);
       x+=.1;
     }, 10);}  
 
+	if (int1)
+	setTimeout(()=>{
+		clearInterval(int1);
+		dbg("Stopped int1");
+	}, 10000);
   </script> 
 </body>
 </html>
