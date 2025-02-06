@@ -1,3 +1,4 @@
+
 class LineChart {
   constructor(containerId, commandsId, 
     {width=800, height=400, dispPrecisionX=2,dispPrecisionY=4}={}) {
@@ -341,8 +342,8 @@ class LineChart {
       if (series.data.length === 0) return;
 
       const closestPoint = series.data.reduce((prev, curr) => (Math.abs(curr.x - xValue) < Math.abs(prev.x - xValue) ? curr : prev));
-      cursor.seriesData[name] = { x: xValue, y: closestPoint.y };
       if (closestPoint) {
+		cursor.seriesData[name] = { x: xValue, y: closestPoint.y };
         if (cursor == this.cursor1 || cursor2alone) segments.push({ text: `${name}: ${closestPoint.y.toFixed(2)}`, color: series.color });
         else {
           const deltaY = this.cursor2.seriesData[name].y - this.cursor1.seriesData[name].y;
