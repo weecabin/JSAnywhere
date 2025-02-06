@@ -2,8 +2,16 @@
   color: gray;
 }
 
+html {
+    -webkit-text-size-adjust: 100%;
+}
+
 .chart{
   margin:10px;
+}
+
+canvas {
+  border: 1px solid black;
 }
 
 input{
@@ -18,10 +26,13 @@ input{
   background-color: beige;
   border-radius: 10px;
   margin-left:10px;
+	white-space: nowrap;
+	transform: none;
+  flex-grow: 0;
 }
 
 .radio-group span , .moveCursor span{
-    font-weight: bold;
+    //font-weight: bold;
     margin-bottom: 4px;
 	height: 20px;
 }
