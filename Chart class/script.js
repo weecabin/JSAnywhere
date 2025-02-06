@@ -34,8 +34,8 @@ class LineChart {
     // Auto-scale state
     this.autoScale = true;
 
-    this.cursor1 = { name: "Cursor1", active: false, worldX: null, screenX: null, seriesData: {} }; // Track cursor state
-    this.cursor2 = { name: "Cursor2", active: false, worldX: null, screenX: null, seriesData: {} }; // Track cursor state
+    this.cursor1 = { name: "Cursor1", lock:"Data", active: false, worldX: null, screenX: null, seriesData: {} }; // Track cursor state
+    this.cursor2 = { name: "Cursor2", lock:"Data", active: false, worldX: null, screenX: null, seriesData: {} }; // Track cursor state
 
     // Pause datapoint updates
     this.pause = false;
@@ -304,8 +304,11 @@ class LineChart {
     const cursor2alone = !this.cursor1.active && this.cursor2.active;
     const { left, top } = this.margin;
     // Calculate x value
-    //cursor.worldX = this.screenToWorldX(cursor.screenX);
-    cursor.screenX = this.worldToScreenX(cursor.worldX);
+	if (cursor.lock == "Data")
+      cursor.screenX = this.worldToScreenX(cursor.worldX);
+	else {
+	  cursor.worldX = this.screenToWorldX(cursor.screenX);
+	}
     const xValue = cursor.worldX;
 
     // Draw the vertical line
@@ -424,8 +427,10 @@ class LineChart {
         this.view.maxX -= dx / this.xScale;
         this.view.minY += dy / this.yScale;
         this.view.maxY += dy / this.yScale;
-        this.cursor1.screenX += dx;
-        this.cursor2.screenX += dx;
+		if (cursor1.lock == "Data")
+          this.cursor1.screenX += dx;
+		if (cursor2.lock == "Data")
+          this.cursor2.screenX += dx;
       }
       this.pan.start = { x: xtouch, y: ytouch };
       this.render();
@@ -483,19 +488,23 @@ class LineChart {
     this.cmdcontainer.appendChild(document.createElement("br"));
 
     this.addCursorControl(this.cursor1);
+	
+	this.addCursorLockControl(this.cursor1,"lockCursor1");
 
     this.addMoveCursorControl(this.cursor1, "selectPlotId1", "selectMinMax1");
 
     this.cmdcontainer.appendChild(document.createElement("br"));
 
     this.addCursorControl(this.cursor2);
+	
+	this.addCursorLockControl(this.cursor2,"lockCursor2");
 
     this.addMoveCursorControl(this.cursor2, "selectPlotId2", "selectMinMax2");
 
     this.cmdcontainer.appendChild(document.createElement("br"));
 
     const btn = addButton(
-      "copy",
+      "Copy",
       () => {
         this.copy();
       },
@@ -548,10 +557,10 @@ class LineChart {
   }
   addAutoScaleButton() {
     const button = document.createElement("button");
-    button.textContent = "Disable Auto-Scale";
+    button.textContent = "AutoScale Off";
     button.addEventListener("click", () => {
       this.autoScale = !this.autoScale;
-      button.textContent = this.autoScale ? "Disable Auto-Scale" : "Enable Auto-Scale";
+      button.textContent = this.autoScale ? "AutoScale Off" : "Auto-Scale On";
     });
     this.cmdcontainer.appendChild(button);
   }
@@ -598,17 +607,20 @@ class LineChart {
     // Add Cursor on/off button
     const name = cursor.name;
     const cursorButton = document.createElement("button");
-    cursorButton.textContent = `Enable ${name}`;
+    cursorButton.textContent = `${name} On`;
+	
     cursorButton.addEventListener("click", () => {
       cursor.active = !cursor.active;
-      cursorButton.textContent = cursor.active ? `Disable ${name}` : `Enable ${name}`;
+      cursorButton.textContent = cursor.active ? `${name} Off` : `${name} On`;
       if (cursor.active) {
         const canvasCenterX = (this.width - this.margin.left - this.margin.right) / 2 + this.margin.left;
         cursor.screenX = canvasCenterX;
         cursor.worldX = this.screenToWorldX(cursor.screenX);
         document.querySelector(cursor == this.cursor1 ? ".moveCursor1" : ".moveCursor2").style.visibility = "visible";
+		document.querySelector(cursor == this.cursor1 ? ".lockCursor1" : ".lockCursor2").style.visibility = "visible";
       } else {
         document.querySelector(cursor == this.cursor1 ? ".moveCursor1" : ".moveCursor2").style.visibility = "hidden";
+		document.querySelector(cursor == this.cursor1 ? ".lockCursor1" : ".lockCursor2").style.visibility = "hidden";
       }
       this.setControlVisibility();
       this.render(); // Re-render the chart
@@ -622,6 +634,26 @@ class LineChart {
     else get("copyId").style.visibility = "visible";
   }
 
+  addCursorLockControl(cursor,lockCursorId){
+	const span = document.createElement("span");
+	span.textContent = "Lock";
+	span.classList.add("lockCursor");
+    span.classList.add(cursor == this.cursor1 ? "lockCursor1" : "lockCursor2");
+	
+    createSelect({
+      options: [
+	    { value: "Data", text: "Data" },
+        { value: "Screen", text: "Screen" }
+      ],
+      id: lockCursorId,
+      parent: span,
+    });
+	span.addEventListener("change", (event) => {
+      cursor.lock = event.target.value;
+    });
+	this.cmdcontainer.appendChild(span);
+  }
+  
   addMoveCursorControl(cursor, selectPlotId, selectMinMaxId) {
     const span = document.createElement("span");
     span.classList.add("moveCursor");
