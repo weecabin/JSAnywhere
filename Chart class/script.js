@@ -555,6 +555,7 @@ class LineChart {
     if (this.cursor2.active) cursors.push(this.cursor2);
     return cursors;
   }
+  
   addAutoScaleButton() {
     const button = document.createElement("button");
     button.textContent = "AutoScale Off";
@@ -586,6 +587,7 @@ class LineChart {
       this.plots.minY = Infinity;
       this.plots.maxY = -Infinity;
       this.pause = false;
+	  this.render();
     });
     this.cmdcontainer.appendChild(clearbutton);
   }
@@ -634,24 +636,21 @@ class LineChart {
     else get("copyId").style.visibility = "visible";
   }
 
-  addCursorLockControl(cursor,lockCursorId){
-	const span = document.createElement("span");
-	span.textContent = "Lock";
-	span.classList.add("lockCursor");
-    span.classList.add(cursor == this.cursor1 ? "lockCursor1" : "lockCursor2");
-	
-    createSelect({
-      options: [
-	    { value: "Data", text: "Data" },
-        { value: "Screen", text: "Screen" }
-      ],
-      id: lockCursorId,
-      parent: span,
+  addCursorLockControl(cursor){
+	const button = document.createElement("button");
+    button.textContent = "Lock Screen";
+	button.classList.add("lockCursor");
+	button.classList.add(cursor==this.cursor1?"lockCursor1":"lockCursor2");
+    button.addEventListener("click", () => {
+      if (cursor.lock == "Data"){
+		  cursor.lock = "Screen";
+		  button.textContent = "Lock Data"
+	  }else{
+		  cursor.lock = "Data";
+		  button.textContent = "Lock Screen"
+	  }
     });
-	span.addEventListener("change", (event) => {
-      cursor.lock = event.target.value;
-    });
-	this.cmdcontainer.appendChild(span);
+    this.cmdcontainer.appendChild(button);
   }
   
   addMoveCursorControl(cursor, selectPlotId, selectMinMaxId) {
