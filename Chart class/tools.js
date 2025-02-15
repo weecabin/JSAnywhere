@@ -1,3 +1,4 @@
+
 function copyToClipboard(text) {
     navigator.clipboard.writeText(text)
         .then(() => console.log("Copied to clipboard"))
@@ -172,7 +173,7 @@ function dbg(txt) {
 seriesObj = {seriesName:{color,data:{x,y},...}]
 where series = {name:seriesName,data[{x,y},{x,y}...]}
 */
-function FormatData3(seriesObj, {xPrecision = 2, yPrecision = 2, padding = 10, delimiter = " ", startX = null, endX = null } = {}) {
+function FormatData3(seriesObj, {xPrecision = 2, yPrecision = 4, padding = 10, delimiter = " ", startX = null, endX = null } = {}) {
   let names = Object.keys(seriesObj);
   let text = "x".padEnd(padding) + delimiter + names.map(name => name.padEnd(padding)).join(delimiter) + "\n";
 
@@ -212,7 +213,5 @@ function FormatData3(seriesObj, {xPrecision = 2, yPrecision = 2, padding = 10, d
     // Add newline after each row
     text += "\n";
   });
-
-  dbg(text); // Assuming dbg() is your custom debug function
   return text;
 }
