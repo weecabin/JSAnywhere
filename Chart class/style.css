@@ -18,7 +18,7 @@ input{
   margin:10px;
 } 
 
-.radio-group, .moveCursor, button {
+.radio-group, .moveCursor, .lockCursor, button, .showSeries{
   font-size: 1em;
   color:black;
   border: 1px solid #ccc;
@@ -31,7 +31,17 @@ input{
   flex-grow: 0;
 }
 
-.radio-group span , .moveCursor span{
+#showSeriesId{
+	min-width:70px;
+	background: transparent;
+	color:black;
+	/*padding:2px;*/
+	border-radius: 10px;
+	border: 1px solid #ccc;
+	font-size:.9em;
+}
+
+.radio-group span , .moveCursor span, .lockCursor span{
     //font-weight: bold;
     margin-bottom: 4px;
 	height: 20px;
@@ -45,8 +55,8 @@ button{
   font-size:.9em;
 }
 
-.moveCursor select,
-.moveCursor button{
+.moveCursor select, .lockCursor select,
+.moveCursor button, .lockCursor button{
     outline: none; /* Remove the focus outline */
     /*border: none;  /* Remove borders */
     background: transparent; /* Remove background color */
@@ -60,7 +70,7 @@ button{
 	color:black;
 }
 
-.moveCursor {
+.moveCursor, .lockCursor {
     display: inline-flex; /* Align items in a row */
 	visibility: hidden;
     gap: 5px; /* Optional spacing between select and button */
