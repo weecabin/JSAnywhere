@@ -1,4 +1,5 @@
 
+
 function copyToClipboard(text) {
     navigator.clipboard.writeText(text)
         .then(() => console.log("Copied to clipboard"))
@@ -28,10 +29,11 @@ function dbg(txt) {
   pass callBack like this... this.objCallback.bind(this)
   or use arrow function... () => this.objCallback()
   */
-  function createSelect({ options, parent, id = "", name = "", classList = [], onChange = null }) {
+  function createSelect({ options, parent, id = "", name = "", classList = [], onChange = null, multiple = false }) {
     let select = document.createElement("select");
     if (id) select.id = id;
-    if (name) select.name = name;
+    //if (name) select.name = name;
+    if (multiple) select.multiple = true;
     classList.forEach(cls => select.classList.add(cls));
 
     options.forEach(({ value, text, selected = false }) => {
@@ -39,10 +41,20 @@ function dbg(txt) {
         option.value = value;
         option.textContent = text;
         if (selected) option.selected = true;
+		if (multiple) option.checked = true;
         select.appendChild(option);
     });
 
-    if (onChange) select.addEventListener("change", (event) => onChange(event.target.value));
+    select.addEventListener("change", () => {
+        let selectedValues = Array.from(select.options).map(opt => ({
+            value: opt.value,
+            checked: opt.selected
+        }));
+
+        if (onChange) {
+            onChange(selectedValues);
+        }
+    });
 
     if (parent) parent.appendChild(select);
 
@@ -175,6 +187,9 @@ where series = {name:seriesName,data[{x,y},{x,y}...]}
 */
 function FormatData3(seriesObj, {xPrecision = 2, yPrecision = 4, padding = 10, delimiter = " ", startX = null, endX = null } = {}) {
   let names = Object.keys(seriesObj);
+  
+  names = names.filter(name => seriesObj[name].show === true);
+  
   let text = "x".padEnd(padding) + delimiter + names.map(name => name.padEnd(padding)).join(delimiter) + "\n";
 
   let allXValues = new Set(); // Use a Set to store unique values
