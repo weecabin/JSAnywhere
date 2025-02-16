@@ -427,9 +427,9 @@ class LineChart {
         this.view.maxX -= dx / this.xScale;
         this.view.minY += dy / this.yScale;
         this.view.maxY += dy / this.yScale;
-		if (cursor1.lock == "Data")
+		if (this.cursor1.lock == "Data")
           this.cursor1.screenX += dx;
-		if (cursor2.lock == "Data")
+		if (this.cursor2.lock == "Data")
           this.cursor2.screenX += dx;
       }
       this.pan.start = { x: xtouch, y: ytouch };
