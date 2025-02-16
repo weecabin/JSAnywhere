@@ -1,4 +1,5 @@
 
+
 class LineChart {
   constructor(containerId, commandsId, 
     {width=800, height=400, dispPrecisionX=2,dispPrecisionY=4}={}) {
@@ -59,18 +60,26 @@ class LineChart {
     if (this.plots.series[name]) {
       return;
     }
-    this.plots.series[name] = { color, data: [] };
+    this.plots.series[name] = { color, data: [] ,
+	  minX: Infinity,
+      maxX: -Infinity,
+      minY: Infinity,
+      maxY: -Infinity,
+      show:true};
     this.populateSeriesSelect("selectPlotId1");
     this.populateSeriesSelect("selectPlotId2");
+	this.populateSeriesSelect("showSeriesId",true);
   }
 
-  populateSeriesSelect(selectId) {
+  populateSeriesSelect(selectId,checkAll=false) {
     let select = document.getElementById(selectId);
     select.innerHTML = ""; // Clear existing options
     Object.keys(this.plots.series).forEach((seriesName) => {
+	  if (this.plots.series[seriesName].show == false)return;
       let option = document.createElement("option");
       option.value = seriesName;
       option.textContent = seriesName;
+	  if (checkAll)option.selected=true;
       select.appendChild(option);
     });
   }
@@ -85,17 +94,22 @@ class LineChart {
     series.data.push({ x, y });
 
     // Check if minY or maxY has changed
-    const prevMinY = this.plots.minY;
-    const prevMaxY = this.plots.maxY;
+    const prevMinY = series.minY;
+    const prevMaxY = series.maxY;
 
-    // Update chart bounds
-    this.plots.minX = Math.min(this.plots.minX, x);
-    this.plots.maxX = Math.max(this.plots.maxX, x);
-    this.plots.minY = Math.min(this.plots.minY, y);
-    this.plots.maxY = Math.max(this.plots.maxY, y);
-
-    // Set dirty flag if bounds have changed
-    if (this.plots.minY !== prevMinY || this.plots.maxY !== prevMaxY) {
+    // Update bounds
+    series.minX = Math.min(series.minX, x);
+    series.maxX = Math.max(series.maxX, x);
+    series.minY = Math.min(series.minY, y);
+    series.maxY = Math.max(series.maxY, y);
+	
+	this.plots.minX = Math.min(this.plots.minX, series.minX);
+    this.plots.maxX = Math.max(this.plots.maxX, series.maxX);
+    this.plots.minY = Math.min(this.plots.minY, series.minY);
+    this.plots.maxY = Math.max(this.plots.maxY, series.maxY);
+	
+    // Set dirty flag if bounds have changed, to readjust the y axis margins
+    if (series.minY !== prevMinY || series.maxY !== prevMaxY) {
       this.yAxisDirty = true;
     }
 
@@ -112,10 +126,18 @@ class LineChart {
 
   zoomFit() {
     this.zoomX.checked = true;
-    this.view.minX = this.plots.minX;
-    this.view.maxX = this.plots.maxX;
-    this.view.minY = this.plots.minY;
-    this.view.maxY = this.plots.maxY;
+	this.view.minX = Infinity;
+    this.view.maxX = -Infinity;
+    this.view.minY = Infinity;
+    this.view.maxY = -Infinity;
+	Object.keys(this.plots.series).forEach((seriesName) => {
+		let series = this.plots.series[seriesName];
+		if (series.show == false)return;
+		this.view.minX = series.minX<this.view.minX?series.minX:this.view.minX;
+        this.view.maxX = series.maxX>this.view.maxX?series.maxX:this.view.maxX;
+        this.view.minY = series.minY<this.view.minY?series.minY:this.view.minY;
+        this.view.maxY = series.maxY>this.view.maxY?series.maxY:this.view.maxY;
+	});
     this.prepareRender();
   }
 
@@ -187,6 +209,7 @@ class LineChart {
     ctx.clip();
     // Draw each series
     Object.keys(this.plots.series).forEach((name) => {
+	  if (this.plots.series[name].show==false)return;
       this.drawSeries(ctx, this.plots.series[name]);
     });
     ctx.restore();
@@ -342,7 +365,7 @@ class LineChart {
     // add the series data for the current position
     Object.keys(this.plots.series).forEach((name) => {
       const series = this.plots.series[name];
-      if (series.data.length === 0) return;
+      if (series.data.length === 0 || !series.show) return;
 
       const closestPoint = series.data.reduce((prev, curr) => (Math.abs(curr.x - xValue) < Math.abs(prev.x - xValue) ? curr : prev));
       if (closestPoint) {
@@ -479,6 +502,8 @@ class LineChart {
   addControls(containerId, commandsId) {
     this.addAutoScaleButton();
 
+	this.addSeriesShowButton()
+	
     this.addZoomFitButton();
 
     this.addZoomControls(commandsId);
@@ -530,6 +555,7 @@ class LineChart {
       copyToClipboard(text);
     } else {
       Object.keys(this.plots.series).forEach((name) => {
+		if(!this.plots.series[name].show)return;
         text += name + "\n";
         let i = IndexOf(cursors[0].worldX, this.plots.series[name].data);
         text += JSON.stringify(this.plots.series[name].data[i],
@@ -651,6 +677,24 @@ class LineChart {
 	  }
     });
     this.cmdcontainer.appendChild(button);
+  }
+  
+  addSeriesShowButton(){
+	const span = document.createElement("span");
+	span.classList.add("showSeries");
+	const title = document.createElement("span");
+	title.textContent = "Show";
+	span.appendChild(title);
+    createSelect({ options:[], name:"Show", id:"showSeriesId", parent:span, multiple:true,
+	   onChange:(values)=>{
+		   values.forEach((value)=>{
+			   this.plots.series[value.value].show = value.checked;
+		   })
+		   this.populateSeriesSelect("selectPlotId1");
+           this.populateSeriesSelect("selectPlotId2");
+		   this.zoomFit();
+	   }});
+	this.cmdcontainer.appendChild(span);
   }
   
   addMoveCursorControl(cursor, selectPlotId, selectMinMaxId) {
