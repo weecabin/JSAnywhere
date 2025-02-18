@@ -1,5 +1,6 @@
 
 
+
 class LineChart {
   constructor(containerId, commandsId, 
     {width=800, height=400, dispPrecisionX=2,dispPrecisionY=4}={}) {
@@ -91,7 +92,7 @@ class LineChart {
     }
 
     const series = this.plots.series[seriesName];
-    series.data.push({ x, y });
+    series.data.push({x, y});
 
     // Check if minY or maxY has changed
     const prevMinY = series.minY;
@@ -103,25 +104,28 @@ class LineChart {
     series.minY = Math.min(series.minY, y);
     series.maxY = Math.max(series.maxY, y);
 	
-	this.plots.minX = Math.min(this.plots.minX, series.minX);
-    this.plots.maxX = Math.max(this.plots.maxX, series.maxX);
-    this.plots.minY = Math.min(this.plots.minY, series.minY);
-    this.plots.maxY = Math.max(this.plots.maxY, series.maxY);
+	if (series.show == true){
+	  //if (seriesName == "Sinc")console.log("show sinc");
+	  this.plots.minX = Math.min(this.plots.minX, series.minX);
+      this.plots.maxX = Math.max(this.plots.maxX, series.maxX);
+      this.plots.minY = Math.min(this.plots.minY, series.minY);
+      this.plots.maxY = Math.max(this.plots.maxY, series.maxY);
+    
 	
-    // Set dirty flag if bounds have changed, to readjust the y axis margins
-    if (series.minY !== prevMinY || series.maxY !== prevMaxY) {
-      this.yAxisDirty = true;
-    }
+      // Set dirty flag if bounds have changed, to readjust the y axis margins
+      if (series.minY !== prevMinY || series.maxY !== prevMaxY) {
+        this.yAxisDirty = true;
+      }
 
-    // Adjust view bounds if auto-scale is enabled
-    if (this.autoScale) {
-      this.view.minX = this.plots.minX;
-      this.view.maxX = this.plots.maxX;
-      this.view.minY = this.plots.minY;
-      this.view.maxY = this.plots.maxY;
+      // Adjust view bounds if auto-scale is enabled
+      if (this.autoScale) {
+        this.view.minX = this.plots.minX;
+        this.view.maxX = this.plots.maxX;
+        this.view.minY = this.plots.minY;
+        this.view.maxY = this.plots.maxY; 
+	    this.prepareRender();
+      }
     }
-
-    this.prepareRender();
   }
 
   zoomFit() {
@@ -133,10 +137,10 @@ class LineChart {
 	Object.keys(this.plots.series).forEach((seriesName) => {
 		let series = this.plots.series[seriesName];
 		if (series.show == false)return;
-		this.view.minX = series.minX<this.view.minX?series.minX:this.view.minX;
-        this.view.maxX = series.maxX>this.view.maxX?series.maxX:this.view.maxX;
-        this.view.minY = series.minY<this.view.minY?series.minY:this.view.minY;
-        this.view.maxY = series.maxY>this.view.maxY?series.maxY:this.view.maxY;
+		this.plots.minX = this.view.minX = series.minX<this.view.minX?series.minX:this.view.minX;
+        this.plots.maxX = this.view.maxX = series.maxX>this.view.maxX?series.maxX:this.view.maxX;
+        this.plots.minY = this.view.minY = series.minY<this.view.minY?series.minY:this.view.minY;
+        this.plots.maxY = this.view.maxY = series.maxY>this.view.maxY?series.maxY:this.view.maxY;
 	});
     this.prepareRender();
   }
