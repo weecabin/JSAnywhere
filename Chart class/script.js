@@ -1,6 +1,7 @@
 
 
 
+
 class LineChart {
   constructor(containerId, commandsId, 
     {width=800, height=400, dispPrecisionX=2,dispPrecisionY=4}={}) {
@@ -85,7 +86,7 @@ class LineChart {
     });
   }
 
-  addPoint(seriesName, x, y) {
+  addPoint(seriesName, x, y,redraw=true) {
     if (this.pause) return;
     if (!this.plots.series[seriesName]) {
       return;
@@ -104,7 +105,7 @@ class LineChart {
     series.minY = Math.min(series.minY, y);
     series.maxY = Math.max(series.maxY, y);
 	
-	if (series.show == true){
+	if (series.show == true && redraw==true){
 	  //if (seriesName == "Sinc")console.log("show sinc");
 	  this.plots.minX = Math.min(this.plots.minX, series.minX);
       this.plots.maxX = Math.max(this.plots.maxX, series.maxX);
@@ -123,8 +124,8 @@ class LineChart {
         this.view.maxX = this.plots.maxX;
         this.view.minY = this.plots.minY;
         this.view.maxY = this.plots.maxY; 
-	    this.prepareRender();
       }
+	  this.prepareRender();
     }
   }
 
@@ -262,7 +263,7 @@ class LineChart {
       const xPos = this.worldToScreenX(xValue);
 
       // Round the X value to the nearest integer for simplicity
-      const formattedXValue = xValue.toFixed(2);
+      const formattedXValue = xValue.toFixed(this.dispPrecisionX);
 
       // Draw the X-axis label
       ctx.fillText(formattedXValue, xPos, this.height - bottom + 5);
