@@ -1,7 +1,4 @@
 
-
-
-
 class LineChart {
   constructor(containerId, commandsId, 
     {width=800, height=400, dispPrecisionX=2,dispPrecisionY=4}={}) {
