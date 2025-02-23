@@ -1,7 +1,8 @@
 
+
 class LineChart {
-  constructor(containerId, commandsId, 
-    {width=800, height=400, dispPrecisionX=2,dispPrecisionY=4}={}) {
+  constructor(containerId, commandsId, options={}) {
+	let {width=800, height=400, dispPrecisionX=2,dispPrecisionY=4} = options;
     this.container = document.getElementById(containerId);
     this.cmdcontainer = document.getElementById(commandsId);
 	this.dispPrecisionX = dispPrecisionX;
@@ -609,7 +610,13 @@ class LineChart {
     clearbutton.textContent = "Clear";
     clearbutton.addEventListener("click", () => {
       this.pause = true;
-      Object.values(this.plots.series).forEach((series) => (series.data = []));
+      Object.values(this.plots.series).forEach((series) => {
+		series.data = []
+		series.minX = Infinity;
+        series.maxX = -Infinity;
+        series.minY = Infinity;
+        series.maxY = -Infinity;
+	  });
       this.plots.minX = Infinity;
       this.plots.maxX = -Infinity;
       this.plots.minY = Infinity;
