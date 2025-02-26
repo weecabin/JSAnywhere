@@ -1,5 +1,4 @@
 
-
 class LineChart {
   constructor(containerId, commandsId, options={}) {
 	let {width=800, height=400, dispPrecisionX=2,dispPrecisionY=4} = options;
@@ -701,7 +700,8 @@ class LineChart {
 		   })
 		   this.populateSeriesSelect("selectPlotId1");
            this.populateSeriesSelect("selectPlotId2");
-		   this.zoomFit();
+		   //this.zoomFit();
+		   this.prepareRender();
 	   }});
 	this.cmdcontainer.appendChild(span);
   }
