@@ -700,8 +700,10 @@ class LineChart {
 		   })
 		   this.populateSeriesSelect("selectPlotId1");
            this.populateSeriesSelect("selectPlotId2");
-		   //this.zoomFit();
-		   this.prepareRender();
+		   if (this.autoScale)
+		     this.zoomFit();
+		   else
+		     this.prepareRender();
 	   }});
 	this.cmdcontainer.appendChild(span);
   }
